@@ -7,7 +7,7 @@ from graphics import Colors
 from ball import Ball
 from player import Player
 from collections import deque
-
+import time
 
 
 class Level:
@@ -29,117 +29,107 @@ class Level:
         self.p = Player(types, ball_radius,
                         (self.cx, self.cy), player_bullet_speed)
         self.rot = player_rotaion
+        self.come_back = []
 
-    def handle_events(self, keys):
-        if self.finished:
-            pygame.quit()
-            sys.exit()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                elif event.key == pygame.K_x or event.key == pygame.K_DOWN:
-                    self.p.swap()
-                elif event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                    self.p.shoot()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    angle = get_angle(self.p.pos,
-                                      (event.pos[0], self.h - event.pos[1]))
-                    self.p.set_rotation(angle)
-                    self.p.shoot()
+    def check_sequence(self, start_index):
+        st = start_index
+        fin = start_index
+        type = self.balls[start_index].type
+        i = start_index - 1
+        while i >= 0:
+            if self.balls[i].type == type:
+                st -= 1
+            else:
+                break
+            i -= 1
+        i = start_index + 1
+        while i < len(self.balls):
+            if self.balls[i].type == type:
+                fin += 1
+            else:
+                break
+            i += 1
+        return (st, fin)
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            self.p.rotate(self.rot)
-        if keys[pygame.K_RIGHT]:
-            self.p.rotate(-self.rot)
-
-    def draw_frame(self):
-        self.screen.fill(self.bg)
-        for ball in self.balls:
-            if ball.clr != Colors.invisible:
-                rounded_pos = (int(ball.pos[0]), int(ball.pos[1]))
-                pygame.draw.circle(self.screen, ball.clr, rounded_pos, ball.r)
-
-        for bul_pair in self.p.bullets:
-            rounded_pos = (int(bul_pair[0].pos[0]), int(bul_pair[0].pos[1]))
-            pygame.draw.circle(self.screen, bul_pair[0].clr,
-                               rounded_pos, bul_pair[0].r)
-
-        ball = self.p.second
-        pygame.draw.circle(self.screen, ball.clr, ball.pos, ball.r)
-        ball = self.p.first
-        pygame.draw.circle(self.screen, ball.clr, ball.pos, ball.r)
-
-        pygame.display.flip()
-
-    def update(self, time_delta):
+    def clear_trash(self):
         for ball in self.balls:
             if ball.status == 4:
-                del ball
-        #if len(self.balls) == 10:
-        #    self.delete_ball_sequence(3, 6)
-        self.move_balls_head_by_time(len(self.balls), time_delta)
+                self.balls.remove(ball)
+        for bull in self.p.bullets:
+            if bull[0].status == 4:
+                self.p.bullets.remove(bull)
+
+    def update(self, time_delta):
+        if len(self.come_back) == 0:
+            self.move_balls_head_by_time(len(self.balls), time_delta)
+        else:
+            amount = self.come_back[0]
+            self.move_balls_head_by_time(amount, time_delta * 3, True)
+            d = get_distance(self.balls[amount - 1].pos,
+                             self.balls[amount].pos)
+            if d < self.r * 2:
+                self.move_balls_head_by_distance(amount, self.r * 2 - d)
+                self.come_back.clear()
+                s1 = self.check_sequence(amount - 1)
+                s2 = self.check_sequence(amount)
+                if s1 == s2 and s1[1] - s1[2] >= 2:
+                    self.delete_ball_sequence(s1[0], s1[1])
         if self.amount > 0 and (len(self.balls) == 0 or
                                 get_distance(self.cp[0],
                                              self.balls[len(self.balls) - 1]
                                                  .pos) >=
                                 self.r * 2):
             b = Ball(random.randint(0, self.types - 1),
-                                   self.r, self.cp[0])
+                     self.r, self.cp[0])
             self.balls.append(b)
             self.amount -= 1
-        counter = 0
-        for bul_pair in self.p.bullets:
-            dx = self.p.b_speed * time_delta
-            bul_pair[0].move(dx * math.cos(bul_pair[1]),
-                             -dx * math.sin(bul_pair[1]))
-            if not is_in_border(bul_pair[0].pos, (-self.r, -self.r),
-                                (self.w + self.r, self.h + self.r)):
-                self.p.bullets.remove(bul_pair)
-            for i in range(len(self.balls)):
-                if get_distance(bul_pair[0].pos, self.balls[i].pos) <= \
-                   self.r * 2:
-                    if len(self.balls) == 1:
-                        a1 = get_angle2(bul_pair[0].pos, self.balls[0].pos,
-                                        self.cp[self.balls[0].goal])
-                        a2 = get_angle2(bul_pair[0].pos, self.balls[0].pos,
-                                        self.cp[self.balls[0].goal - 1])
-                        if a1 < a2:
-                            self.insert_ball(0, bul_pair[0])
-                        else:
-                            self.insert_ball(1, bul_pair[0])
+        if len(self.come_back) == 0:
+            counter = 0
+            for bul_pair in self.p.bullets:
+                dx = self.p.b_speed * time_delta
+                bul_pair[0].move(dx * math.cos(bul_pair[1]),
+                                 -dx * math.sin(bul_pair[1]))
+                if not is_in_border(bul_pair[0].pos, (-self.r, -self.r),
+                                    (self.w + self.r, self.h + self.r)):
+                    bul_pair[0].status = 3
+                for i in range(len(self.balls)):
+                    if get_distance(bul_pair[0].pos, self.balls[i].pos) <= \
+                       self.r * 2:
+                        if len(self.balls) == 1:
+                            a1 = get_angle2(bul_pair[0].pos, self.balls[0].pos,
+                                            self.cp[self.balls[0].goal])
+                            a2 = get_angle2(bul_pair[0].pos, self.balls[0].pos,
+                                            self.cp[self.balls[0].goal - 1])
+                            if a1 < a2:
+                                self.insert_ball(0, bul_pair[0])
+                            else:
+                                self.insert_ball(1, bul_pair[0])
 
-                    elif i == 0:
-                        if get_angle2(bul_pair[0].pos, self.balls[i].pos,
-                                      self.balls[i + 1].pos) < math.pi / 2:
-                            self.insert_ball(1, bul_pair[0])
+                        elif i == 0:
+                            if get_angle2(bul_pair[0].pos, self.balls[i].pos,
+                                          self.balls[i + 1].pos) < math.pi / 2:
+                                self.insert_ball(1, bul_pair[0])
+                            else:
+                                self.insert_ball(0, bul_pair[0])
+                        elif i == len(self.balls) - 1:
+                            if get_angle2(bul_pair[0].pos, self.balls[i].pos,
+                                          self.balls[i - 1].pos) < math.pi / 2:
+                                self.insert_ball(i, bul_pair[0])
+                            else:
+                                self.insert_ball(i + 1, bul_pair[0])
                         else:
-                            self.insert_ball(0, bul_pair[0])
-                    elif i == len(self.balls) - 1:
-                        if get_angle2(bul_pair[0].pos, self.balls[i].pos,
-                                      self.balls[i - 1].pos) < math.pi / 2:
-                            self.insert_ball(i, bul_pair[0])
-                        else:
-                            self.insert_ball(i + 1, bul_pair[0])
-                    else:
-                        d1 = get_distance(bul_pair[0].pos,
-                                          self.balls[i - 1].pos)
-                        d2 = get_distance(bul_pair[0].pos,
-                                          self.balls[i + 1].pos)
-                        if d1 < d2:
-                            self.insert_ball(i, bul_pair[0])
-                        else:
-                            self.insert_ball(i + 1, bul_pair[0])
-                    counter -= 1
-                    self.p.bullets.remove(bul_pair)
-                    break
-            counter += 1
+                            d1 = get_distance(bul_pair[0].pos,
+                                              self.balls[i - 1].pos)
+                            d2 = get_distance(bul_pair[0].pos,
+                                              self.balls[i + 1].pos)
+                            if d1 < d2:
+                                self.insert_ball(i, bul_pair[0])
+                            else:
+                                self.insert_ball(i + 1, bul_pair[0])
+                        counter -= 1
+                        self.p.bullets.remove(bul_pair)
+                        break
+                counter += 1
 
     def insert_ball(self, index, ball):
         self.balls.insert(index, ball)
@@ -151,13 +141,16 @@ class Level:
             self.balls[index].pos = self.balls[index + 1].pos
             self.balls[index].goal = self.balls[index + 1].goal
             self.move_balls_head_by_distance(index + 1, self.r * 2)
+        s = self.check_sequence(index)
+        if s[1] - s[0] >= 2:
+            self.delete_ball_sequence(s[0], s[1])
 
     def delete_ball_sequence(self, start, end):
         amount = end - start + 1
         for i in range(amount):
-            self.balls.remove(self.balls[start])
-        self.move_balls_head_by_distance(start, self.r * amount * 2, True)
-
+            self.balls[start + i].status = 3
+        if len(self.balls) - 1 != end and start != 0:
+            self.come_back.append(start)
 
     def move_ball_by_distance(self, ball, dx, backward=False):
         if (backward):
@@ -195,10 +188,6 @@ class Level:
     def move_balls_head_by_distance(self, amount, dx, backward=False):
         for i in range(amount):
             self.move_ball_by_distance(self.balls[i], dx, backward)
-
-
-
-
 
 
 def get_distance(p1, p2):

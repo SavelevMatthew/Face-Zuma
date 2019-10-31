@@ -4,15 +4,15 @@ from graphics import Textures
 from drawing import Drawer
 import sys
 
+
 class Application(QMainWindow):
-    def __init__(self, caption, w, h, tex, levels, cur_lvl = 1):
+    def __init__(self, caption, w, h, tex, levels, cur_lvl=1):
         super().__init__()
         self.caption = caption
         self.size = (w, h)
         self.setFixedSize(w, h)
         self.pressed_keys = {'K_RIGHT': False, 'K_LEFT': False,
-                             'K_SPACE': False, 'K_DOWN': False, 'K_UP': False,
-                             'K_A': False, 'K_D': False, 'K_X': False}
+                             'K_A': False, 'K_D': False}
         self.levels = levels
         self.level = levels[cur_lvl - 1]
         self.cur_lvl = cur_lvl
@@ -30,10 +30,15 @@ class Application(QMainWindow):
         self.timer.start(16, self)
 
     def timerEvent(self, event):
+        if(self.level.finished):
+            self.timer.stop()
+            return
+        self.keyHoldEvent()
         self.setWindowTitle(self.caption + ' : ' +
                             self.levels[self.cur_lvl - 1].caption)
         self.level.update(self.frame_delta / 1000)
         self.drawer.draw_frame(self.level)
+        self.level.clear_trash()
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -45,16 +50,12 @@ class Application(QMainWindow):
             self.pressed_keys['K_RIGHT'] = True
         elif key == Qt.Key_D:
             self.pressed_keys['K_D'] = True
-        elif key == Qt.Key_Up:
-            self.pressed_keys['K_UP'] = True
-        elif key == Qt.Key_Space:
-            self.pressed_keys['K_SPACE'] = True
-        elif key == Qt.Key_Down:
-            self.pressed_keys['K_DOWN'] = True
-        elif key == Qt.Key_X:
-            self.pressed_keys['K_X'] = True
         elif key == Qt.Key_Escape:
             sys.exit()
+        elif key == Qt.Key_Space or key == Qt.Key_Up:
+            self.level.p.shoot()
+        elif key == Qt.Key_X or key == Qt.Key_Down:
+            self.level.p.swap()
 
     def keyReleaseEvent(self, event):
         key = event.key()
@@ -66,14 +67,12 @@ class Application(QMainWindow):
             self.pressed_keys['K_RIGHT'] = False
         elif key == Qt.Key_D:
             self.pressed_keys['K_D'] = False
-        elif key == Qt.Key_Up:
-            self.pressed_keys['K_UP'] = False
-        elif key == Qt.Key_Space:
-            self.pressed_keys['K_SPACE'] = False
-        elif key == Qt.Key_Down:
-            self.pressed_keys['K_DOWN'] = False
-        elif key == Qt.Key_X:
-            self.pressed_keys['K_X'] = False
+
+    def keyHoldEvent(self):
+        if self.pressed_keys['K_RIGHT'] or self.pressed_keys['K_D']:
+            self.level.p.rotate(-self.level.rot)
+        elif self.pressed_keys['K_LEFT'] or self.pressed_keys['K_A']:
+            self.level.p.rotate(self.level.rot)
 
 
 class Level_Window(QWidget):

@@ -14,7 +14,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     tex = Textures()
     levels = [engine.Level('Level 1', w, h, len(tex.balls), checkpoints,
-                           30, 25, 100, 5, 250)]
+                           30, 25, 100, 3, 250)]
     window = applogic.Application('Zuma', w, h, tex, levels)
     window.start()
     sys.exit(app.exec_())
