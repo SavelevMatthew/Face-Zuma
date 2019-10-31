@@ -34,8 +34,9 @@ class Application(QMainWindow):
             self.timer.stop()
             return
         self.keyHoldEvent()
-        self.setWindowTitle(self.caption + ' : ' +
-                            self.levels[self.cur_lvl - 1].caption)
+        self.setWindowTitle('{0}: {1} | Score: {2}'.format(self.caption,
+                                                           self.level.caption,
+                                                           self.level.score))
         self.level.update(self.frame_delta / 1000)
         self.drawer.draw_frame(self.level)
         self.level.clear_trash()

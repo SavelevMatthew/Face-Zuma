@@ -30,6 +30,7 @@ class Level:
                         (self.cx, self.cy), player_bullet_speed)
         self.rot = player_rotaion
         self.come_back = []
+        self.score = 0
 
     def check_sequence(self, start_index):
         st = start_index
@@ -72,7 +73,7 @@ class Level:
                 self.come_back.clear()
                 s1 = self.check_sequence(amount - 1)
                 s2 = self.check_sequence(amount)
-                if s1 == s2 and s1[1] - s1[2] >= 2:
+                if s1 == s2 and s1[1] - s1[0] >= 2:
                     self.delete_ball_sequence(s1[0], s1[1])
         if self.amount > 0 and (len(self.balls) == 0 or
                                 get_distance(self.cp[0],
@@ -147,6 +148,7 @@ class Level:
 
     def delete_ball_sequence(self, start, end):
         amount = end - start + 1
+        self.score += amount * (50 + 10 * (amount - 3))
         for i in range(amount):
             self.balls[start + i].status = 3
         if len(self.balls) - 1 != end and start != 0:
