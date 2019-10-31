@@ -31,6 +31,7 @@ class Level:
         self.rot = player_rotaion
         self.come_back = []
         self.score = 0
+        self.won = False
 
     def check_sequence(self, start_index):
         st = start_index
@@ -131,6 +132,9 @@ class Level:
                         self.p.bullets.remove(bul_pair)
                         break
                 counter += 1
+        if len(self.balls) == 0 and self.amount == 0:
+            self.won = True
+            self.finished = True
 
     def insert_ball(self, index, ball):
         self.balls.insert(index, ball)

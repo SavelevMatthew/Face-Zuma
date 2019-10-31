@@ -3,6 +3,8 @@ from PyQt5.QtCore import QBasicTimer, Qt
 from graphics import Textures
 from drawing import Drawer
 import sys
+import engine
+import math
 
 
 class Application(QMainWindow):
@@ -31,15 +33,34 @@ class Application(QMainWindow):
 
     def timerEvent(self, event):
         if(self.level.finished):
+            self.update_title()
             self.timer.stop()
             return
         self.keyHoldEvent()
-        self.setWindowTitle('{0}: {1} | Score: {2}'.format(self.caption,
-                                                           self.level.caption,
-                                                           self.level.score))
         self.level.update(self.frame_delta / 1000)
+        self.update_title()
         self.drawer.draw_frame(self.level)
         self.level.clear_trash()
+
+    def update_title(self):
+        win_cond = ''
+        if self.level.finished:
+            if self.level.won:
+                win_cond = ' YOU WON! '
+            else:
+                win_cond = ' YOU LOST! GAME IS OVER... '
+        title = '{0}: {1}{3}| Score: {2}'.format(self.caption,
+                                                   self.level.caption,
+                                                   self.level.score,
+                                                   win_cond)
+        self.setWindowTitle(title)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            pos = (event.x(), event.y())
+            angle = engine.get_angle(self.level.p.pos, pos)
+            self.level.p.set_rotation(math.pi * 2 - angle)
+            self.level.p.shoot()
 
     def keyPressEvent(self, event):
         key = event.key()
