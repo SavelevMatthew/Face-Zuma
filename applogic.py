@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget
 from PyQt5.QtCore import QBasicTimer, Qt
-from graphics import Textures
 from drawing import Drawer
 import sys
 import engine

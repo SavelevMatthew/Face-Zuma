@@ -1,13 +1,7 @@
-import pygame
-import sys
 import math
-import player
 import random
-from graphics import Colors
 from ball import Ball
 from player import Player
-from collections import deque
-import time
 
 
 class Level:

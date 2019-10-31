@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QLabel
-import engine
 
 
 class Drawer():
