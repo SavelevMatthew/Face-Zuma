@@ -60,7 +60,7 @@ class Level:
             self.move_balls_head_by_time(len(self.balls), time_delta)
         else:
             amount = self.come_back[0]
-            self.move_balls_head_by_time(amount, time_delta * 3, True)
+            self.move_balls_head_by_time(amount, 150, True)
             d = get_distance(self.balls[amount - 1].pos,
                              self.balls[amount].pos)
             if d < self.r * 2:
