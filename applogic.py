@@ -21,16 +21,21 @@ class Application(QMainWindow):
         self.frame_delta = 16
         self.offset = offset
         self.level_window = Level_Window(self)
+        self.header = Header_Window(self)
         self.setStyleSheet('background-color:#646464;')
         self.tex = tex
-        self.drawer = Drawer(self.level_window, tex.balls,
-                             tex.others[self.level.bg])
+        bg = self.level.tex_name + '_bg'
+        header = self.level.tex_name + '_header'
+        self.drawer = Drawer(self.level_window, self.header, tex.balls,
+                             tex.others[bg], tex.others[header])
 
     def start(self):
         self.tex.scale_balls(self.level.r)
         self.show()
         self.drawer.fill_bg(self.size[0], self.size[1] - self.offset)
         self.level_window.show()
+        self.drawer.init_header(self.size[0], self.offset)
+        self.header.show()
         self.timer.start(16, self)
 
     def timerEvent(self, event):
@@ -40,6 +45,7 @@ class Application(QMainWindow):
             return
         self.keyHoldEvent()
         self.level.update(self.frame_delta / 1000)
+        self.drawer.update_header(self.level.caption, self.level.score)
         self.update_title()
         self.drawer.draw_frame(self.level)
         self.level.clear_trash()
@@ -51,10 +57,7 @@ class Application(QMainWindow):
                 win_cond = ' YOU WON! '
             else:
                 win_cond = ' YOU LOST! GAME IS OVER... '
-        title = '{0}: {1}{3}| Score: {2}'.format(self.caption,
-                                                 self.level.caption,
-                                                 self.level.score,
-                                                 win_cond)
+        title = '{0} {1}'.format(self.caption, win_cond)
         self.setWindowTitle(title)
 
     def mousePressEvent(self, event):
@@ -105,3 +108,10 @@ class Level_Window(QWidget):
         self.setParent(app)
         self.setFixedSize(app.size[0], app.size[1] - app.offset)
         self.move(0, app.offset)
+
+
+class Header_Window(QWidget):
+    def __init__(self, app):
+        super().__init__()
+        self.setParent(app)
+        self.setFixedSize(app.size[0], app.offset)

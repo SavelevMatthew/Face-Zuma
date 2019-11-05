@@ -1,13 +1,17 @@
 from PyQt5.QtWidgets import QLabel
+from PyQt5.QtCore import Qt
 
 
 class Drawer():
-    def __init__(self, parent_widget, textures, bg):
-        self.parent = parent_widget
+    def __init__(self, level_widget, header_window, textures, bg, header):
+        self.parent = level_widget
+        self.header_window = header_window
         self.labels = {}
         self.tex = textures
-        print(bg)
         self.bg_texture = bg
+        self.header_texture = header
+        self.bg = None
+        self.header = {}
 
     def draw_frame(self, level):
         for ball in level.balls:
@@ -40,7 +44,51 @@ class Drawer():
         self.labels[ball].move(ball.pos[0] - ball.r, ball.pos[1] - ball.r)
 
     def fill_bg(self, w, h):
-        self.bg = QLabel(self.parent)
+        if self.bg is None:
+            self.bg = QLabel(self.parent)
         self.bg.setFixedSize(self.parent.size())
         self.bg.setPixmap(self.bg_texture.scaled(w, h))
         self.bg.show()
+
+    def update_header(self, lvl_name, score):
+        self.header['score'].setText('{}'.format(score))
+        self.header['name'].setText(lvl_name)
+
+    def init_header(self, w, h):
+        if len(self.header) != 0:
+            for label in self.header:
+                self.header[label].deleteLater()
+                del self.header[label]
+        bg = QLabel(self.header_window)
+        bg.setFixedSize(w, h)
+        bg.setPixmap(self.header_texture.scaled(w, h))
+        bg.show()
+        self.header['bg'] = bg
+
+        name = QLabel(self.header_window)
+        style = 'font-size: {0}px; background-color: {1}; font-weight: {2}; \
+                 color: {3}; font-family: {4}'.format(int(h / 2.5),
+                                                      'rgba(0,0,0,65%)',
+                                                      'bold', 'white',
+                                                      'Impact, sans-serif')
+        name.setAlignment(Qt.AlignCenter)
+        name.setStyleSheet(style)
+        name.setFixedSize(w * 0.3, h * 3 / 4)
+        name.move(w * 0.35, 0)
+        name.show()
+        name.setText('uknown')
+        self.header['name'] = name
+
+        score = QLabel(self.header_window)
+        style = 'font-size: {0}px; background-color: {1}; font-weight: {2}; \
+                 color: {3}; font-family: {4}'.format(int(h / 2.5),
+                                                      'rgba(0,0,0,65%)',
+                                                      'bold', 'white',
+                                                      'Impact, sans-serif')
+        score.setStyleSheet(style)
+        score.setFixedSize(w * 0.2, h * 3 / 4)
+        score.setAlignment(Qt.AlignCenter)
+        score.move(w * 0.8, 0)
+        score.show()
+        score.setText('0')
+        self.header['score'] = score
