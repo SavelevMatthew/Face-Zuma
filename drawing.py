@@ -2,10 +2,12 @@ from PyQt5.QtWidgets import QLabel
 
 
 class Drawer():
-    def __init__(self, parent_widget, textures):
+    def __init__(self, parent_widget, textures, bg):
         self.parent = parent_widget
-        self.tex = textures
         self.labels = {}
+        self.tex = textures
+        print(bg)
+        self.bg_texture = bg
 
     def draw_frame(self, level):
         for ball in level.balls:
@@ -36,3 +38,9 @@ class Drawer():
         self.labels[ball].setPixmap(self.tex[ball.type].scaled(ball.r * 2,
                                                                ball.r * 2))
         self.labels[ball].move(ball.pos[0] - ball.r, ball.pos[1] - ball.r)
+
+    def fill_bg(self, w, h):
+        self.bg = QLabel(self.parent)
+        self.bg.setFixedSize(self.parent.size())
+        self.bg.setPixmap(self.bg_texture.scaled(w, h))
+        self.bg.show()

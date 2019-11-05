@@ -7,7 +7,7 @@ from player import Player
 class Level:
     def __init__(self, caption, width, height, types, checkpoints,
                  ball_amount, ball_radius, ball_speed,
-                 player_rotaion, player_bullet_speed):
+                 player_rotaion, player_bullet_speed, bg_name):
         self.types = types
         self.caption = caption
         self.amount = ball_amount
@@ -26,6 +26,7 @@ class Level:
         self.come_back = []
         self.score = 0
         self.won = False
+        self.bg = bg_name
 
     def check_sequence(self, start_index):
         st = start_index

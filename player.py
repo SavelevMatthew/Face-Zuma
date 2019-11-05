@@ -2,6 +2,8 @@ from ball import Ball
 from graphics import Colors
 import math
 import random
+
+
 class Player:
     def __init__(self, ball_types_amout, radius, pos, bullet_speed):
         self.pos = pos

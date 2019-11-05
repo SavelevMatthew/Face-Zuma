@@ -7,14 +7,17 @@ import engine
 
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
+    offset = 50
     w, h = 800, 600
-    checkpoints = [(-40, 40), (40, 40), (w - 40, 40),
-                   (w - 40, h - 40), (40, h - 40), (40, 120), (w - 120, 120),
-                   (w - 120, h - 120), (120, h - 120)]
+    lw, lh = w, h - offset
+    checkpoints = [(-40, 40), (40, 40), (lw - 40, 40),
+                   (lw - 40, lh - 40), (40, lh - 40), (40, 120),
+                   (lw - 120, 120),
+                   (lw - 120, lh - 120), (120, lh - 120), (120, 200)]
     app = QApplication(sys.argv)
     tex = Textures()
-    levels = [engine.Level('Level 1', w, h, len(tex.balls), checkpoints,
-                           30, 25, 50, 3, 350)]
-    window = applogic.Application('Zuma', w, h, tex, levels)
+    levels = [engine.Level('Level 1', lw, lh, len(tex.balls), checkpoints,
+                           30, 25, 50, 3, 350, 'lvl1_bg')]
+    window = applogic.Application('Zuma', w, h, offset, tex, levels)
     window.start()
     sys.exit(app.exec_())
