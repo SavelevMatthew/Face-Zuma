@@ -1,0 +1,17 @@
+Use code below as an instructions.
+Make sure to use all fields as in example with same names and types.
+
+===============================================================================
+
+{
+  "Name": "Level 1",
+  "Amount": 30,
+  "Raduis": 25,
+  "BallSpeed": 50,
+  "BulletSpeed": 350,
+  "TexturesPrefix": "lvl1",
+  "Checkpoints": [[-40, 40], [40, 40], [760, 40], [760, 510], [40, 510], [40, 120], [680, 120], [680, 430], [120, 430], [120, 200]],
+  "Highscores": []
+}
+
+===============================================================================

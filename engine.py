@@ -6,7 +6,7 @@ from player import Player
 
 class Level:
     def __init__(self, caption, width, height, types, checkpoints,
-                 ball_amount, ball_radius, ball_speed,
+                 ball_amount, ball_radius, ball_speed, player_pos,
                  player_rotaion, player_bullet_speed, tex_name_prefix):
         self.types = types
         self.caption = caption
@@ -21,7 +21,7 @@ class Level:
         self.balls = []
         self.finished = False
         self.p = Player(types, ball_radius,
-                        (self.cx, self.cy), player_bullet_speed)
+                        player_pos, player_bullet_speed)
         self.rot = player_rotaion
         self.come_back = []
         self.score = 0

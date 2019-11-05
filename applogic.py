@@ -22,7 +22,6 @@ class Application(QMainWindow):
         self.offset = offset
         self.level_window = Level_Window(self)
         self.header = Header_Window(self)
-        self.setStyleSheet('background-color:#646464;')
         self.tex = tex
         bg = self.level.tex_name + '_bg'
         header = self.level.tex_name + '_header'
