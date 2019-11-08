@@ -3,13 +3,15 @@ from PyQt5.QtCore import Qt
 
 
 class Drawer():
-    def __init__(self, level_widget, header_window, textures, bg, header):
+    def __init__(self, level_widget, header_window, textures, others, mode):
         self.parent = level_widget
         self.header_window = header_window
         self.labels = {}
-        self.tex = textures
-        self.bg_texture = bg
-        self.header_texture = header
+        self.tex_balls = textures
+        self.tex_others = others
+        self.mode = mode
+        self.bg_texture = None
+        self.header_texture = None
         self.bg = None
         self.header = {}
 
@@ -25,7 +27,7 @@ class Drawer():
         if ball.status == 0:
             label = QLabel(self.parent)
             label.setStyleSheet('background-color: rgba(0,0,0,0%)')
-            label.setPixmap(self.tex[ball.type])
+            label.setPixmap(self.tex_balls[self.mode][ball.type])
             label.setFixedSize(ball.r * 2, ball.r * 2)
             label.show()
             self.labels[ball] = label
@@ -39,9 +41,19 @@ class Drawer():
             ball.status = 4
 
     def draw_ball(self, ball):
-        self.labels[ball].setPixmap(self.tex[ball.type].scaled(ball.r * 2,
-                                                               ball.r * 2))
+        self.labels[ball].setPixmap(
+            self.tex_balls[self.mode][ball.type].scaled(ball.r * 2,
+                                                        ball.r * 2))
         self.labels[ball].move(ball.pos[0] - ball.r, ball.pos[1] - ball.r)
+
+    def init_level(self, w, h, offset, prefix):
+        self.labels.clear()
+        bg = prefix + '_bg'
+        header = prefix + '_header'
+        self.bg_texture = self.tex_others[bg]
+        self.header_texture = self.tex_others[header]
+        self.fill_bg(w, h - offset)
+        self.init_header(w, offset)
 
     def fill_bg(self, w, h):
         if self.bg is None:

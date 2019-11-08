@@ -1,13 +1,14 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget
+from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QLabel
 from PyQt5.QtCore import QBasicTimer, Qt
 from drawing import Drawer
 import sys
 import engine
 import math
+from copy import deepcopy
 
 
 class Application(QMainWindow):
-    def __init__(self, caption, w, h, offset, tex, levels, cur_lvl=1):
+    def __init__(self, caption, w, h, offset, tex, levels):
         super().__init__()
         self.caption = caption
         self.size = (w, h)
@@ -15,26 +16,39 @@ class Application(QMainWindow):
         self.pressed_keys = {'K_RIGHT': False, 'K_LEFT': False,
                              'K_A': False, 'K_D': False}
         self.levels = levels
-        self.level = levels[cur_lvl - 1]
-        self.cur_lvl = cur_lvl
+        self.level = levels[0]
         self.timer = QBasicTimer()
         self.frame_delta = 16
         self.offset = offset
         self.level_window = Level_Window(self)
         self.header = Header_Window(self)
         self.tex = tex
-        bg = self.level.tex_name + '_bg'
-        header = self.level.tex_name + '_header'
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
-                             tex.others[bg], tex.others[header])
+                             tex.others, self.level.mode)
 
-    def start(self):
+        self.level_select = Level_Select_Window(self)
+        self.main_menu = Menu_Window(self, self.level.mode)
+
+        self.show()
+        self.main_menu.show()
+        self.update_title()
+
+    def switch_modes(self):
+        for i in range(len(self.levels)):
+            mode = self.levels[i].switch_modes()
+            self.levels[i].p.mode = mode
+            self.levels[i].p.refill_balls()
+        self.drawer.mode = mode
+
+    def start(self, level_id):
+        self.level = self.levels[level_id]
         self.tex.scale_balls(self.level.r)
         self.show()
-        self.drawer.fill_bg(self.size[0], self.size[1] - self.offset)
+        self.drawer.init_level(self.size[0], self.size[1],
+                               self.offset, self.level.tex_name)
         self.level_window.show()
-        self.drawer.init_header(self.size[0], self.offset)
         self.header.show()
+
         self.timer.start(16, self)
 
     def timerEvent(self, event):
@@ -114,3 +128,118 @@ class Header_Window(QWidget):
         super().__init__()
         self.setParent(app)
         self.setFixedSize(app.size[0], app.offset)
+
+
+class Menu_Window(QWidget):
+    def __init__(self, app, mode):
+        super().__init__()
+        self.setParent(app)
+        self.setFixedSize(app.size[0], app.size[1])
+        self.bg = QLabel(self)
+        self.bg.setPixmap(app.tex.others['menu_bg'].scaled(app.size[0],
+                                                           app.size[1]))
+        self.bg.show()
+
+        bg_clr = 'rgba(229,190,149,40%)'
+        border_clr = 'rgba(88,65,49,100%)'
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      int(app.size[0] / 100),
+                                                      int(app.size[0] * 0.094))
+        self.play = QPushButton("Play", self)
+        self.play.setFixedSize(app.size[0] / 2, app.size[1] / 5)
+        self.play.move(app.size[0] / 4, app.size[1] * 0.265)
+        self.play.setStyleSheet(style)
+        self.play.clicked.connect(self.hide)
+        self.play.clicked.connect(app.level_select.show)
+        self.play.show()
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      int(app.size[0] / 100),
+                                                      int(app.size[0] * 0.05))
+
+        self.mode = QPushButton("Mode: " + mode, self)
+        self.mode.setFixedSize(app.size[0] / 2, app.size[1] / 5)
+        self.mode.move(app.size[0] / 4, app.size[1] * 0.49)
+        self.mode.clicked.connect(app.switch_modes)
+        self.mode.clicked.connect(lambda: self.switch_mode(app.drawer.mode))
+        self.mode.setStyleSheet(style)
+        self.mode.show()
+
+        self.exit = QPushButton("Quit", self)
+        self.exit.setFixedSize(app.size[0] / 4, app.size[1] / 6)
+        self.exit.move(app.size[0] * 0.375, app.size[1] * 0.715)
+        self.exit.setStyleSheet(style)
+        self.exit.clicked.connect(sys.exit)
+        self.exit.show()
+
+        self.help = QPushButton("?", self)
+        self.help.setFixedSize(app.size[0] * 0.1, app.size[1] / 6)
+        self.help.move(app.size[0] * 0.65, app.size[1] * 0.715)
+        self.help.setStyleSheet(style)
+        self.help.show()
+
+    def switch_mode(self, name):
+        self.mode.setText('Mode: ' + name)
+
+
+class Level_Select_Window(QWidget):
+    def __init__(self, app):
+        super().__init__()
+        self.setParent(app)
+        self.setFixedSize(app.size[0], app.size[1])
+        self.bg = QLabel(self)
+        self.bg.setPixmap(app.tex.others['level_menu'].scaled(app.size[0],
+                                                              app.size[1]))
+        self.bg.show()
+
+        self.caption = QLabel(self)
+        self.caption.setFixedSize(app.size[0], app.size[1] / 6)
+        self.caption.setAlignment(Qt.AlignCenter)
+        clr = 'rgba(88,65,49,100%)'
+        style = 'font-size: {0}px; background-color: {1}; font-weight: {2}; \
+                 color: {3}; font-family: {4}'.format(int(app.size[1] / 8),
+                                                      'rgba(0,0,0,0%)',
+                                                      'bold', clr,
+                                                      'Phosphate, sans-serif')
+        self.caption.setStyleSheet(style)
+        self.caption.setText('Levels:')
+        self.caption.show()
+
+        width = app.size[0] * 0.7
+        off_x = (app.size[0] - width) / 2
+        off_y = app.size[1] / 6
+        x_count = 5
+        el_w = width / x_count
+        dist = el_w / 5
+        bg_clr = 'rgba(229,190,149,40%)'
+        border_clr = 'rgba(88,65,49,100%)'
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      int(dist / 2),
+                                                      int(el_w / 2))
+
+        level_buttons = []
+        for i in range(len(app.levels)):
+            btn = QButton(i, '{}'.format(i + 1), self)
+            btn.setFixedSize(el_w - dist, el_w - dist)
+            btn.setStyleSheet(style)
+            pos_x = (i % x_count) * el_w + (dist / 2) + off_x
+            pos_y = (i // x_count) * el_w + (dist / 2) + off_y
+            btn.clicked.connect(self.hide)
+            btn.clicked.connect(btn.on_click)
+            btn.move(pos_x, pos_y)
+            btn.show()
+            level_buttons.append(btn)
+
+
+class QButton(QPushButton):
+    def __init__(self, id, text, parent):
+        super().__init__(text, parent)
+        self.id = id
+
+    def on_click(self):
+        self.parent().parent().start(self.id)

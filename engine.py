@@ -9,6 +9,9 @@ class Level:
                  ball_amount, ball_radius, ball_speed, player_pos,
                  player_rotaion, player_bullet_speed, tex_name_prefix):
         self.types = types
+        self.modes = list(types.keys())
+        self.mode = self.modes[1]
+        self.ball_amount = self.types[self.mode]
         self.caption = caption
         self.amount = ball_amount
         self.w = width
@@ -20,13 +23,19 @@ class Level:
         self.v = ball_speed
         self.balls = []
         self.finished = False
-        self.p = Player(types, ball_radius,
+        self.p = Player(types, self.mode, ball_radius,
                         player_pos, player_bullet_speed)
         self.rot = player_rotaion
         self.come_back = []
         self.score = 0
         self.won = False
         self.tex_name = tex_name_prefix
+
+    def switch_modes(self):
+        index = self.modes.index(self.mode)
+        self.mode = self.modes[(index + 1) % len(self.modes)]
+        self.ball_amount = self.types[self.mode]
+        return self.mode
 
     def check_sequence(self, start_index):
         st = start_index
@@ -76,7 +85,7 @@ class Level:
                                              self.balls[len(self.balls) - 1]
                                                  .pos) >=
                                 self.r * 2):
-            b = Ball(random.randint(0, self.types - 1),
+            b = Ball(random.randint(0, self.ball_amount - 1),
                      self.r, self.cp[0])
             self.balls.append(b)
             self.amount -= 1

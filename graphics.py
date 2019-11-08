@@ -14,21 +14,29 @@ class Colors:
 
 
 class Textures():
-    def __init__(self):
-        self.balls = []
+    def __init__(self, modes):
+        self.balls = {}
         self.others = {}
+        for mode in modes:
+            self.balls[mode] = []
         for file in os.listdir(r'images'):
-            if file.endswith('.png'):
+            dir = os.path.join('images', file)
+            if os.path.isdir(dir) and file in modes:
+                for img in os.listdir(dir):
+                    if img.endswith('.png'):
+                        value = os.path.join(dir, img)
+                        self.balls[file].append(QPixmap(value))
+            elif file.endswith('.png'):
                 value = os.path.join('images', file)
-                if file.startswith('ball'):
-                    self.balls.append(QPixmap(value))
-                else:
-                    self.others[file.split('.')[0]] = QPixmap(value)
+                self.others[file.split('.')[0]] = QPixmap(value)
 
     def scale(self, tex_name, w, h):
         self.others[tex_name].scaled(w, h)
 
     def scale_balls(self, r):
-        for i in range(len(self.balls)):
-            new_map = self.balls[i].scaled(2 * r, 2 * r)
-            self.balls[i] = new_map
+        for k, v in self.balls.items():
+                new_value = []
+                for i in range(len(v)):
+                    new_map = v[i].scaled(2 * r, 2 * r)
+                    new_value.append(new_map)
+                self.balls[k] = new_value

@@ -5,17 +5,24 @@ import random
 
 
 class Player:
-    def __init__(self, ball_types_amout, radius, pos, bullet_speed):
+    def __init__(self, ball_types_amout, mode, radius, pos, bullet_speed):
         self.pos = pos
-        self.types = ball_types_amout
+        self.modes = ball_types_amout
+        self.mode = mode
+        self.types = self.modes[mode]
         self.b_speed = bullet_speed
         self.distance = radius
         self.bullets = []
-        self.first = Ball(random.randint(0, self.types - 1), radius, pos)
-        self.second = Ball(random.randint(0, self.types - 1),
-                           int(2 * radius / 3),
-                           (pos[0], pos[1] + radius))
+        self.refill_balls()
         self.angle = math.pi / 2
+
+    def refill_balls(self):
+        self.types = self.modes[self.mode]
+        self.first = Ball(random.randint(0, self.types - 1), self.distance,
+                          self.pos)
+        self.second = Ball(random.randint(0, self.types - 1),
+                           int(2 * self.distance / 3),
+                           (self.pos[0], self.pos[1] + self.distance))
 
     def swap(self):
         type = self.first.type
