@@ -67,6 +67,7 @@ class Application(QMainWindow):
         self.level_window = Level_Window(self)
         self.drawer.labels.clear()
         self.drawer.parent = self.level_window
+        self.drawer.bg = None
         self.level.balls.clear()
         self.level.p.bullets.clear()
 
@@ -74,6 +75,7 @@ class Application(QMainWindow):
         if(self.level.finished):
             self.update_title()
             self.timer.stop()
+            self.level.finished = False
             return
         self.keyHoldEvent()
         self.level.update(self.frame_delta / 1000)

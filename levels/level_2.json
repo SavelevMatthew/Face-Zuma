@@ -1,6 +1,6 @@
 {
     "Name": "Level 2",
-    "Amount": 1,
+    "Amount": 30,
     "Raduis": 25,
     "BallSpeed": 50,
     "BulletSpeed": 350,
@@ -76,10 +76,10 @@
         ]
     ],
     "Highscores": [
-        300,
-        150,
-        0,
-        0,
-        0
+        7280,
+        6690,
+        4230,
+        3150,
+        1140
     ]
 }

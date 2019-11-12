@@ -1,8 +1,8 @@
 {
     "Name": "Level 3",
-    "Amount": 40,
+    "Amount": 15,
     "Raduis": 20,
-    "BallSpeed": 50,
+    "BallSpeed": 35,
     "BulletSpeed": 350,
     "PlayerPos": [
         400,
@@ -40,10 +40,10 @@
         ]
     ],
     "Highscores": [
+        3000,
+        1800,
         1790,
-        840,
-        0,
-        0,
-        0
+        1350,
+        1200
     ]
 }
