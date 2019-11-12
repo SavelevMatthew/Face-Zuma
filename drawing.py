@@ -70,7 +70,7 @@ class Drawer():
         if len(self.header) != 0:
             for label in self.header:
                 self.header[label].deleteLater()
-                del self.header[label]
+        self.header.clear()
         bg = QLabel(self.header_window)
         bg.setFixedSize(w, h)
         bg.setPixmap(self.header_texture.scaled(w, h))

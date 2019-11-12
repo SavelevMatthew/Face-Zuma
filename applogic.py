@@ -5,6 +5,7 @@ import sys
 import engine
 import math
 from copy import deepcopy
+from parser import save_levels
 
 
 class Application(QMainWindow):
@@ -26,6 +27,7 @@ class Application(QMainWindow):
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
                              tex.others, self.level.mode)
 
+        self.help = Help_Window(w / 2, h / 2)
         self.level_select = Level_Select_Window(self)
         self.main_menu = Menu_Window(self, self.level.mode)
 
@@ -33,12 +35,19 @@ class Application(QMainWindow):
         self.main_menu.show()
         self.update_title()
 
+    def save_levels(self):
+        save_levels(self.levels)
+
     def switch_modes(self):
         for i in range(len(self.levels)):
             mode = self.levels[i].switch_modes()
             self.levels[i].p.mode = mode
             self.levels[i].p.refill_balls()
         self.drawer.mode = mode
+
+    def got_to_main(self):
+        self.level_select.hide()
+        self.main_menu.show()
 
     def start(self, level_id):
         self.level = self.levels[level_id]
@@ -48,8 +57,18 @@ class Application(QMainWindow):
                                self.offset, self.level.tex_name)
         self.level_window.show()
         self.header.show()
-
+        self.level.p.refill_balls()
         self.timer.start(16, self)
+
+    def finish_game(self):
+        self.timer.stop()
+        self.level.amount = self.level.ball_count
+        self.level_window.deleteLater()
+        self.level_window = Level_Window(self)
+        self.drawer.labels.clear()
+        self.drawer.parent = self.level_window
+        self.level.balls.clear()
+        self.level.p.bullets.clear()
 
     def timerEvent(self, event):
         if(self.level.finished):
@@ -80,6 +99,11 @@ class Application(QMainWindow):
             self.level.p.set_rotation(math.pi * 2 - angle)
             self.level.p.shoot()
 
+    def closeEvent(self, event):
+        self.save_levels()
+        print('Зочем закрыл? Открой абратна,' +
+              'а то Стасян уже выехал за тобой!))0)')
+
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key_Left:
@@ -91,7 +115,16 @@ class Application(QMainWindow):
         elif key == Qt.Key_D:
             self.pressed_keys['K_D'] = True
         elif key == Qt.Key_Escape:
-            sys.exit()
+            if not self.level_window.isHidden():
+                self.finish_game()
+                self.level_window.hide()
+                self.main_menu.show()
+            elif not self.level_select.isHidden():
+                self.level_select.hide()
+                self.main_menu.show()
+            elif not self.main_menu.isHidden():
+                self.save_levels()
+                sys.exit()
         elif key == Qt.Key_Space or key == Qt.Key_Up:
             self.level.p.shoot()
         elif key == Qt.Key_X or key == Qt.Key_Down:
@@ -172,6 +205,7 @@ class Menu_Window(QWidget):
         self.exit.setFixedSize(app.size[0] / 4, app.size[1] / 6)
         self.exit.move(app.size[0] * 0.375, app.size[1] * 0.715)
         self.exit.setStyleSheet(style)
+        self.exit.clicked.connect(app.save_levels)
         self.exit.clicked.connect(sys.exit)
         self.exit.show()
 
@@ -179,6 +213,7 @@ class Menu_Window(QWidget):
         self.help.setFixedSize(app.size[0] * 0.1, app.size[1] / 6)
         self.help.move(app.size[0] * 0.65, app.size[1] * 0.715)
         self.help.setStyleSheet(style)
+        self.help.clicked.connect(app.help.show)
         self.help.show()
 
     def switch_mode(self, name):
@@ -234,6 +269,38 @@ class Level_Select_Window(QWidget):
             btn.move(pos_x, pos_y)
             btn.show()
             level_buttons.append(btn)
+        style = style.replace(border_clr, 'rgba(100,0,0,100%)')
+        back_btn = QPushButton("←", self)
+        back_btn.setFixedSize(el_w - dist, el_w - dist)
+        back_btn.setStyleSheet(style)
+        back_btn.move(dist / 2, app.size[1] - el_w + dist / 2)
+        back_btn.clicked.connect(app.got_to_main)
+        back_btn.show()
+        self.back_btn = back_btn
+
+
+class Help_Window(QWidget):
+    def __init__(self, w, h):
+        super().__init__()
+        self.txt = 'Hello and Welcome to ZUMA! \n' + \
+                   'By clicking Mode button you can' + \
+                   'switch game texture packs \n' + \
+                   'Play button will move you to Level Select window \n\n' + \
+                   'Move your mouse or use Arrows/A/D buttons to aim \n' + \
+                   'Shoot balls with Space/↑ and swap them with X/↓ \n' + \
+                   'When sequence will have 3+ of same balls in a row, \n' + \
+                   'You will get 50 points for ball' + \
+                   '(and 10 extra for each 4+ ball) \n' + \
+                   'Don\'t let the balls hit the end of the road... \n' + \
+                   'And the most important: HAVE FUN ;) \n\n' + \
+                   'Author: Matthew Savelev, 2019, All rights reserved ©'
+        self.text = QLabel(self)
+        self.text.setAlignment = Qt.AlignCenter
+        self.setFixedSize(w, h)
+        self.text.setFixedSize(w, h)
+        self.text.setText(self.txt)
+        self.text.setStyleSheet('background-color: rgba(100,100,100,100%)')
+        self.text.show
 
 
 class QButton(QPushButton):

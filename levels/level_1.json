@@ -1,11 +1,61 @@
 {
-  "Name": "Level 1",
-  "Amount": 30,
-  "Raduis": 25,
-  "BallSpeed": 50,
-  "BulletSpeed": 350,
-  "PlayerPos": [400, 275],
-  "TexturesPrefix": "lvl1",
-  "Checkpoints": [[-40, 40], [40, 40], [760, 40], [760, 510], [40, 510], [40, 120], [680, 120], [680, 430], [120, 430], [120, 200]],
-  "Highscores": []
+    "Name": "Level 1",
+    "Amount": 30,
+    "Raduis": 25,
+    "BallSpeed": 60,
+    "BulletSpeed": 350,
+    "PlayerPos": [
+        400,
+        275
+    ],
+    "TexturesPrefix": "lvl1",
+    "Checkpoints": [
+        [
+            -40,
+            40
+        ],
+        [
+            40,
+            40
+        ],
+        [
+            760,
+            40
+        ],
+        [
+            760,
+            510
+        ],
+        [
+            40,
+            510
+        ],
+        [
+            40,
+            120
+        ],
+        [
+            680,
+            120
+        ],
+        [
+            680,
+            430
+        ],
+        [
+            120,
+            430
+        ],
+        [
+            120,
+            200
+        ]
+    ],
+    "Highscores": [
+        2700,
+        0,
+        0,
+        0,
+        0
+    ]
 }

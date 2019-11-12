@@ -7,12 +7,14 @@ from player import Player
 class Level:
     def __init__(self, caption, width, height, types, checkpoints,
                  ball_amount, ball_radius, ball_speed, player_pos,
-                 player_rotaion, player_bullet_speed, tex_name_prefix):
+                 player_rotaion, player_bullet_speed, tex_name_prefix,
+                 highscores):
         self.types = types
         self.modes = list(types.keys())
         self.mode = self.modes[1]
         self.ball_amount = self.types[self.mode]
         self.caption = caption
+        self.ball_count = ball_amount
         self.amount = ball_amount
         self.w = width
         self.h = height
@@ -30,12 +32,20 @@ class Level:
         self.score = 0
         self.won = False
         self.tex_name = tex_name_prefix
+        self.highscores = highscores
 
     def switch_modes(self):
         index = self.modes.index(self.mode)
         self.mode = self.modes[(index + 1) % len(self.modes)]
         self.ball_amount = self.types[self.mode]
         return self.mode
+
+    def update_highscores(self):
+        for i in range(len(self.highscores)):
+            if self.score >= self.highscores[i]:
+                self.highscores.insert(i, self.score)
+                self.highscores.pop()
+                break
 
     def check_sequence(self, start_index):
         st = start_index
@@ -139,6 +149,7 @@ class Level:
         if len(self.balls) == 0 and self.amount == 0:
             self.won = True
             self.finished = True
+            self.update_highscores()
 
     def insert_ball(self, index, ball):
         self.balls.insert(index, ball)
@@ -181,6 +192,7 @@ class Level:
                 ball.goal += 1
                 if ball.goal == len(self.cp):
                     self.finished = True
+                    self.update_highscores()
                     return
                 dx -= dist
                 dist = get_distance(ball.pos, self.cp[ball.goal])
