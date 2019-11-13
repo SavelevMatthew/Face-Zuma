@@ -4,6 +4,12 @@ from engine import Level
 
 
 def read_level(filename, w, h, types):
+    '''
+    Gets level information from file and returns new level based on it
+
+    w, h - level size
+    types - amount of each type of ball
+    '''
     with open(filename, 'r') as f:
         data = json.load(f)
         name = data.get('Name')
@@ -23,6 +29,12 @@ def read_level(filename, w, h, types):
 
 
 def parse_levels(w, h, types):
+    '''
+    Scans levels directory for json files named with "level", gets their data,
+    and returns levels list
+
+    w, h - app size
+    '''
     levels = []
     for file in sorted(os.listdir('levels')):
         if 'level' in file and file.endswith('.json'):
@@ -32,6 +44,9 @@ def parse_levels(w, h, types):
 
 
 def save_levels(levels):
+    '''
+    Save updated highscores in levels files
+    '''
     high_score_dict = {}
     for level in levels:
         high_score_dict[level.caption] = level.highscores

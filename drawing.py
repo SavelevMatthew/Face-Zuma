@@ -16,6 +16,11 @@ class Drawer():
         self.header = {}
 
     def draw_frame(self, level):
+        '''
+        Updates ball, bullets and player on screen
+
+        level used to pass game condition data
+        '''
         for ball in level.balls:
             self.update_ball(ball)
         for bull in level.p.bullets:
@@ -24,6 +29,9 @@ class Drawer():
         self.update_ball(level.p.first)
 
     def update_ball(self, ball):
+        '''
+        Updates ball on a screen
+        '''
         if ball.status == 0:
             label = QLabel(self.parent)
             label.setStyleSheet('background-color: rgba(0,0,0,0%)')
@@ -41,12 +49,22 @@ class Drawer():
             ball.status = 4
 
     def draw_ball(self, ball):
+        '''
+        Draws ball on a screen
+        '''
         self.labels[ball].setPixmap(
             self.tex_balls[self.mode][ball.type].scaled(ball.r * 2,
                                                         ball.r * 2))
         self.labels[ball].move(ball.pos[0] - ball.r, ball.pos[1] - ball.r)
 
     def init_level(self, w, h, offset, prefix):
+        '''
+        Initialize basic level environment like background and header windows
+
+        w, h - window size,
+        offset - header height,
+        prefix - level textures prefix
+        '''
         self.labels.clear()
         bg = prefix + '_bg'
         header = prefix + '_header'
@@ -56,6 +74,9 @@ class Drawer():
         self.init_header(w, offset)
 
     def fill_bg(self, w, h):
+        '''
+        Filling background of level
+        '''
         if self.bg is None:
             self.bg = QLabel(self.parent)
         self.bg.setFixedSize(self.parent.size())
@@ -63,10 +84,16 @@ class Drawer():
         self.bg.show()
 
     def update_header(self, lvl_name, score):
+        '''
+        Updates header texts (name and current score)
+        '''
         self.header['score'].setText('{}'.format(score))
         self.header['name'].setText(lvl_name)
 
     def init_header(self, w, h):
+        '''
+        Initialize header with size of w, h
+        '''
         if len(self.header) != 0:
             for label in self.header:
                 self.header[label].deleteLater()

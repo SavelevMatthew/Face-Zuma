@@ -10,6 +10,9 @@ from parser import save_levels
 
 class Application(QMainWindow):
     def __init__(self, caption, w, h, offset, tex, levels):
+        '''
+        Initialize Game Application
+        '''
         super().__init__()
         self.caption = caption
         self.size = (w, h)
@@ -27,7 +30,7 @@ class Application(QMainWindow):
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
                              tex.others, self.level.mode)
 
-        self.help = Help_Window(w / 2, h / 2)
+        self.help = Help_Window(w / 1.5, h / 2)
         self.level_select = Level_Select_Window(self)
         self.main_menu = Menu_Window(self, self.level.mode)
 
@@ -36,9 +39,15 @@ class Application(QMainWindow):
         self.update_title()
 
     def save_levels(self):
+        '''
+        Saves current highscores in files
+        '''
         save_levels(self.levels)
 
     def switch_modes(self):
+        '''
+        Changes mode to next one
+        '''
         for i in range(len(self.levels)):
             mode = self.levels[i].switch_modes()
             self.levels[i].p.mode = mode
@@ -46,10 +55,18 @@ class Application(QMainWindow):
         self.drawer.mode = mode
 
     def got_to_main(self):
+        '''
+        Closes level-select menu and opening Main one
+        '''
         self.level_select.hide()
         self.main_menu.show()
 
     def start(self, level_id):
+        '''
+        Prepare level environment and then start the GAME
+
+        level_id used to choose, which level we want to run
+        '''
         self.level = self.levels[level_id]
         self.tex.scale_balls(self.level.r)
         self.show()
@@ -61,6 +78,10 @@ class Application(QMainWindow):
         self.timer.start(16, self)
 
     def finish_game(self):
+        '''
+        Stops the game and clean all visual trash, which is left from previous
+        game.
+        '''
         self.timer.stop()
         self.level.amount = self.level.ball_count
         self.level_window.deleteLater()
@@ -72,6 +93,9 @@ class Application(QMainWindow):
         self.level.p.bullets.clear()
 
     def timerEvent(self, event):
+        '''
+        Running every frame and update game and drawing condition
+        '''
         if(self.level.finished):
             self.update_title()
             self.timer.stop()
@@ -85,6 +109,9 @@ class Application(QMainWindow):
         self.level.clear_trash()
 
     def update_title(self):
+        '''
+        Updates game title
+        '''
         win_cond = ''
         if self.level.finished:
             if self.level.won:
@@ -95,6 +122,9 @@ class Application(QMainWindow):
         self.setWindowTitle(title)
 
     def mousePressEvent(self, event):
+        '''
+        Handles mouse press events
+        '''
         if event.button() == Qt.LeftButton:
             pos = (event.x(), event.y() - self.offset)
             angle = engine.get_angle(self.level.p.pos, pos)
@@ -102,11 +132,18 @@ class Application(QMainWindow):
             self.level.p.shoot()
 
     def closeEvent(self, event):
+        '''
+        Handles app closing event
+        '''
         self.save_levels()
+        self.help.hide()
         print('Зочем закрыл? Открой абратна,' +
               'а то Стасян уже выехал за тобой!))0)')
 
     def keyPressEvent(self, event):
+        '''
+        Handles key pressing events
+        '''
         key = event.key()
         if key == Qt.Key_Left:
             self.pressed_keys['K_LEFT'] = True
@@ -126,6 +163,7 @@ class Application(QMainWindow):
                 self.main_menu.show()
             elif not self.main_menu.isHidden():
                 self.save_levels()
+                self.help.hide()
                 sys.exit()
         elif key == Qt.Key_Space or key == Qt.Key_Up:
             self.level.p.shoot()
@@ -133,6 +171,9 @@ class Application(QMainWindow):
             self.level.p.swap()
 
     def keyReleaseEvent(self, event):
+        '''
+        Handles key releasing events
+        '''
         key = event.key()
         if key == Qt.Key_Left:
             self.pressed_keys['K_LEFT'] = False
@@ -144,6 +185,9 @@ class Application(QMainWindow):
             self.pressed_keys['K_D'] = False
 
     def keyHoldEvent(self):
+        '''
+        Handles holding keys events
+        '''
         if self.pressed_keys['K_RIGHT'] or self.pressed_keys['K_D']:
             self.level.p.rotate(-self.level.rot)
         elif self.pressed_keys['K_LEFT'] or self.pressed_keys['K_A']:
@@ -219,6 +263,11 @@ class Menu_Window(QWidget):
         self.help.show()
 
     def switch_mode(self, name):
+        '''
+        Updates button text
+
+        name used to pass mode caption
+        '''
         self.mode.setText('Mode: ' + name)
 
 
@@ -286,7 +335,7 @@ class Help_Window(QWidget):
         super().__init__()
         self.txt = 'Hello and Welcome to ZUMA! \n' + \
                    'By clicking Mode button you can' + \
-                   'switch game texture packs \n' + \
+                   ' switch game texture packs \n' + \
                    'Play button will move you to Level Select window \n\n' + \
                    'Move your mouse or use Arrows/A/D buttons to aim \n' + \
                    'Shoot balls with Space/↑ and swap them with X/↓ \n' + \
@@ -301,14 +350,27 @@ class Help_Window(QWidget):
         self.setFixedSize(w, h)
         self.text.setFixedSize(w, h)
         self.text.setText(self.txt)
-        self.text.setStyleSheet('background-color: rgba(100,100,100,100%)')
+        bg_clr = 'rgba(229,190,149,40%)'
+        border_clr = 'rgba(88,65,49,100%)'
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      int(w / 50),
+                                                      int(w * 0.032))
+        self.text.setStyleSheet(style)
         self.text.show
 
 
 class QButton(QPushButton):
+    '''
+    Modified QPushButton with ID
+    '''
     def __init__(self, id, text, parent):
         super().__init__(text, parent)
         self.id = id
 
     def on_click(self):
+        '''
+        Handles button clicking events
+        '''
         self.parent().parent().start(self.id)

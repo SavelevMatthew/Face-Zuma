@@ -10,6 +10,9 @@ class Colors:
                    (255, 165, 0), (0, 0, 0)]
 
     def generate_rnd(colors):
+        '''
+        Generate random color of passed colors
+        '''
         return colors[random.randint(0, len(colors) - 1)]
 
 
@@ -31,9 +34,15 @@ class Textures():
                 self.others[file.split('.')[0]] = QPixmap(value)
 
     def scale(self, tex_name, w, h):
-        self.others[tex_name].scaled(w, h)
+        '''
+        Return scaled to w and h texture with name of tex_name
+        '''
+        return self.others[tex_name].scaled(w, h)
 
     def scale_balls(self, r):
+        '''
+        Scales balls textures to new radius
+        '''
         for k, v in self.balls.items():
                 new_value = []
                 for i in range(len(v)):

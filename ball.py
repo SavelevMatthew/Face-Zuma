@@ -7,5 +7,10 @@ class Ball:
         self.status = status
 
     def move(self, dx, dy):
+        '''
+        Moves ball to (dx, dy) coordinates
+
+        dx, dy - coordinates of ball center
+        '''
         pos = self.pos
         self.pos = (pos[0] + dx, pos[1] + dy)

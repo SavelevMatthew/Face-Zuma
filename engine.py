@@ -35,12 +35,18 @@ class Level:
         self.highscores = highscores
 
     def switch_modes(self):
+        '''
+        Changes textures mod to next one and returns value of current mode
+        '''
         index = self.modes.index(self.mode)
         self.mode = self.modes[(index + 1) % len(self.modes)]
         self.ball_amount = self.types[self.mode]
         return self.mode
 
     def update_highscores(self):
+        '''
+        Checking current highscores and record it if it's higher than Top 5
+        '''
         for i in range(len(self.highscores)):
             if self.score >= self.highscores[i]:
                 self.highscores.insert(i, self.score)
@@ -48,6 +54,10 @@ class Level:
                 break
 
     def check_sequence(self, start_index):
+        '''
+        Scanning ball sequence in both directions to find subsequence of balls
+        with same color as ball with start_index
+        '''
         st = start_index
         fin = start_index
         type = self.balls[start_index].type
@@ -68,6 +78,9 @@ class Level:
         return (st, fin)
 
     def clear_trash(self):
+        '''
+        Removes unused balls (which was deleted in drawer)
+        '''
         for ball in self.balls:
             if ball.status == 4:
                 self.balls.remove(ball)
@@ -76,6 +89,11 @@ class Level:
                 self.p.bullets.remove(bull)
 
     def update(self, time_delta):
+        '''
+        Updates game condition
+
+        time_delta is time passed from last call
+        '''
         if len(self.come_back) == 0:
             self.move_balls_head_by_time(len(self.balls), time_delta)
         else:
@@ -152,6 +170,9 @@ class Level:
             self.update_highscores()
 
     def insert_ball(self, index, ball):
+        '''
+        Inserts ball in sequence on index position
+        '''
         self.balls.insert(index, ball)
         if index == len(self.balls) - 1:
             self.balls[index].pos = self.balls[index - 1].pos
@@ -166,6 +187,9 @@ class Level:
             self.delete_ball_sequence(s[0], s[1])
 
     def delete_ball_sequence(self, start, end):
+        '''
+        Deletes balls from start to end positions
+        '''
         amount = end - start + 1
         self.score += amount * (50 + 10 * (amount - 3))
         for i in range(amount):
@@ -174,6 +198,13 @@ class Level:
             self.come_back.append(start)
 
     def move_ball_by_distance(self, ball, dx, backward=False):
+        '''
+        Moves ball on a checkpoints road
+
+        dx - distance to move
+        ball - ball to move
+        backward - should it go back or forward
+        '''
         if (backward):
             dist = get_distance(ball.pos, self.cp[ball.goal - 1])
             while dist <= dx:
@@ -200,27 +231,57 @@ class Level:
         ball.move(dx * math.cos(angle), dx * math.sin(angle))
 
     def move_ball_by_time(self, ball, time_delta, backward=False):
+        '''
+        Moves ball on a checkpoints road
+
+        time_delta - how many time was spent from last update
+        ball - ball to move
+        backward - should it go back or forward
+        '''
         dx = self.v * time_delta
         self.move_ball_by_distance(ball, dx, backward)
 
     def move_balls_head_by_time(self, amount, time_delta, backward=False):
+        '''
+        Moves balls sequence head on a checkpoints road
+
+        time_delta - how many time was spent from last update
+        ball - ball to move
+        backward - should it go back or forward
+        '''
         for i in range(amount):
             self.move_ball_by_time(self.balls[i], time_delta, backward)
 
     def move_balls_head_by_distance(self, amount, dx, backward=False):
+        '''
+        Moves balls sequence head on a checkpoints road
+
+        dx - distance to move
+        ball - ball to move
+        backward - should it go back or forward
+        '''
         for i in range(amount):
             self.move_ball_by_distance(self.balls[i], dx, backward)
 
 
 def get_distance(p1, p2):
+    '''
+    Returns a distance between p1 and p2
+    '''
     return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
 
 
 def get_angle(p1, p2):
+    '''
+    Returns an angle between p1-p2 line and OX axis
+    '''
     return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
 
 
 def get_angle2(end1, corner, end2):
+    '''
+    Returns an angle between end1-corner and corner-end2 lines
+    '''
     a = math.fabs(get_angle(end1, corner) - get_angle(end2, corner))
     if a > math.pi:
         return math.pi * 2 - a
