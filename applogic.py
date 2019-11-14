@@ -33,6 +33,7 @@ class Application(QMainWindow):
         self.help = Help_Window(w / 1.5, h / 2)
         self.level_select = Level_Select_Window(self)
         self.main_menu = Menu_Window(self, self.level.mode)
+        self.score_window = Score_Window(self)
 
         self.show()
         self.main_menu.show()
@@ -59,6 +60,7 @@ class Application(QMainWindow):
         Closes level-select menu and opening Main one
         '''
         self.level_select.hide()
+        self.score_window.hide()
         self.main_menu.show()
 
     def start(self, level_id):
@@ -73,9 +75,18 @@ class Application(QMainWindow):
         self.drawer.init_level(self.size[0], self.size[1],
                                self.offset, self.level.tex_name)
         self.level_window.show()
+        self.level_window.lower()
         self.header.show()
         self.level.p.refill_balls()
         self.timer.start(16, self)
+
+    def restart(self):
+        '''
+        Restarts current game
+        '''
+        self.finish_game()
+        id = self.levels.index(self.level)
+        self.start(id)
 
     def finish_game(self):
         '''
@@ -99,7 +110,12 @@ class Application(QMainWindow):
         if(self.level.finished):
             self.update_title()
             self.timer.stop()
+            self.score_window.update_highscores(self.level.highscores)
+            self.score_window.update_title(self.level.won)
+            self.score_window.show()
             self.level.finished = False
+            self.level.score = 0
+            self.level.won = False
             return
         self.keyHoldEvent()
         self.level.update(self.frame_delta / 1000)
@@ -200,6 +216,131 @@ class Level_Window(QWidget):
         self.setParent(app)
         self.setFixedSize(app.size[0], app.size[1] - app.offset)
         self.move(0, app.offset)
+
+
+class Score_Window(QWidget):
+    def __init__(self, app):
+        super().__init__()
+        self.setParent(app)
+        h = (app.size[1] - app.offset) * 0.7 + app.offset
+        self.setFixedSize(app.size[0] / 2, h)
+        self.move(app.size[0] / 4,
+                   (app.size[1] - app.offset - h) / 2 + app.offset)
+        bg_clr = 'rgba(229,190,149,70%)'
+        border = int(app.size[0] / 75)
+        border_clr = 'rgba(88,65,49,100%)'
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      border,
+                                                      int(h * 0.05))
+        self.setStyleSheet(style)
+        bg = QLabel()
+        bg.setParent(self)
+        bg.setStyleSheet(style)
+        bg.setFixedSize(self.size())
+        self.bg = bg
+
+        self.score_lines = []
+        btns_height = int((h - app.offset) / 8.5)
+        btns_width = app.size[0] / 3
+        for i in range(5):
+            label = QLabel()
+            label.setFixedSize(btns_width, btns_height)
+            if i % 2 == 0:
+                line = 'background-color: {0}; border: 0px; \
+                        font-weight: {1}; \
+                        color: {2}; font-family: {3}'.format('rgba(0,0,0,65%)',
+                                                             'bold', 'white',
+                                                             'Impact, \
+                                                              sans-serif')
+            else:
+                line = 'background-color: {0}; border: 0px;\
+                        font-weight: {1}; \
+                        color: {2}; font-family: {3}'.format('rgba(0,0,0,45%)',
+                                                             'bold', 'white',
+                                                             'Impact, \
+                                                              sans-serif')
+            label.setStyleSheet(line)
+            label.setParent(self)
+            label.setText('99999')
+            label.setAlignment(Qt.AlignCenter)
+            label.move((app.size[0] / 2 - btns_width) / 2,
+                       btns_height * (i + 2) + border)
+            self.score_lines.append(label)
+
+        label = QLabel()
+        label.setParent(self)
+        label.setText('Highscores')
+        label.setStyleSheet('border: 0px; background-color: rgba(0,0,0,0%); \
+                             font-size: {0}px'.format(int(h * 0.07)))
+        label.setAlignment(Qt.AlignCenter)
+        label.setFixedSize(btns_width, btns_height)
+        label.move((app.size[0] / 2 - btns_width) / 2, border + btns_height)
+        label.show()
+        self.caption = label
+
+        label = QLabel()
+        label.setParent(self)
+        label.setText('Unknown!')
+        self.title_size = int(h * 0.07)
+        label.setStyleSheet('background-color: rgba(0,0,0,0%); \
+                             border: 0px; \
+                             border-bottom: 5px solid {2}; \
+                             color: {1}; \
+                             font-size: {0}px'.format(int(h * 0.07), 'green',
+                                                      border_clr))
+        label.setAlignment(Qt.AlignCenter)
+        label.setFixedSize(btns_width, btns_height)
+        label.move((app.size[0] / 2 - btns_width) / 2, border)
+        label.show()
+        self.status = label
+
+        w = btns_height * 1.75
+        btn = QPushButton('⟲', self)
+        btn.setFixedSize(w, w)
+        btn.move(app.size[0] / 4 - border - w, btns_height * 7.5)
+        btn.clicked.connect(app.restart)
+        btn.clicked.connect(self.hide)
+        btn.setStyleSheet('font-size: {}px'.format(int(h * 0.075)))
+
+        self.repeat_btn = btn
+
+        btn = QPushButton('⟰', self)
+        btn.setFixedSize(btns_height * 1.75, btns_height * 1.75)
+        btn.move(app.size[0] / 4 + border, btns_height * 7.5)
+        btn.setStyleSheet('font-size: {}px'.format(int(h * 0.075)))
+        btn.clicked.connect(app.finish_game)
+        btn.clicked.connect(app.got_to_main)
+        self.menu_btn = btn
+
+        self.hide()
+
+    def update_highscores(self, scores):
+        '''
+        Updates Highscores labels
+        '''
+        for i in range(5):
+            self.score_lines[i].setText('{}'.format(scores[i]))
+
+    def update_title(self, won):
+        '''
+        Updates win-lost title
+        '''
+        style = 'background-color: rgba(0,0,0,0%); \
+                 border: 0px; \
+                 border-bottom: 5px solid {1}; \
+                 font-size: {0}px; color: '.format(self.title_size,
+                                                   'rgba(88,65,49,100%)')
+        if won:
+            style += 'green'
+            self.status.setText('You WON!')
+        else:
+            style += 'crimson'
+            self.status.setText('You LOST :(')
+        self.status.setStyleSheet(style)
+
+
 
 
 class Header_Window(QWidget):

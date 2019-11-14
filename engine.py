@@ -99,8 +99,8 @@ class Level:
         else:
             amount = self.come_back[0]
             self.move_balls_head_by_time(amount, time_delta * 3, True)
-            d = get_distance(self.balls[amount - 1].pos,
-                             self.balls[amount].pos)
+            d = self.get_ball_distance(self.balls[amount - 1],
+                                       self.balls[amount])
             if d < self.r * 2:
                 self.move_balls_head_by_distance(amount, self.r * 2 - d)
                 self.come_back.clear()
@@ -168,6 +168,31 @@ class Level:
             self.won = True
             self.finished = True
             self.update_highscores()
+
+    def get_ball_distance(self, ball1, ball2):
+        '''
+        Gets distance between ball on a road
+        '''
+        cp2 = ball2.goal - 1
+        cp1 = ball1.goal
+        if cp1 == cp2 + 1:
+            return get_distance(ball1.pos, ball2.pos)
+        return (self.get_distance_between_checkpoint(cp1, cp2)
+                + get_distance(ball1.pos, self.cp[cp1])
+                + get_distance(ball2.pos, self.cp[cp2]))
+
+    def get_distance_between_checkpoint(self, i1, i2):
+        '''
+        Gets distance between 2 checkpoints on a road
+        '''
+        ma = max(i1, i2)
+        mi = min(i1, i2)
+        dist = 0
+        while mi != ma:
+            dist += get_distance(self.cp[mi], self.cp[mi + 1])
+            mi += 1
+        return dist
+
 
     def insert_ball(self, index, ball):
         '''
