@@ -177,9 +177,9 @@ class Level:
         cp1 = ball1.goal
         if cp1 == cp2 + 1:
             return get_distance(ball1.pos, ball2.pos)
-        return (self.get_distance_between_checkpoint(cp1, cp2)
-                + get_distance(ball1.pos, self.cp[cp1])
-                + get_distance(ball2.pos, self.cp[cp2]))
+        return (self.get_distance_between_checkpoint(cp1, cp2) +
+                get_distance(ball1.pos, self.cp[cp1]) +
+                get_distance(ball2.pos, self.cp[cp2]))
 
     def get_distance_between_checkpoint(self, i1, i2):
         '''
@@ -192,7 +192,6 @@ class Level:
             dist += get_distance(self.cp[mi], self.cp[mi + 1])
             mi += 1
         return dist
-
 
     def insert_ball(self, index, ball):
         '''

@@ -225,7 +225,7 @@ class Score_Window(QWidget):
         h = (app.size[1] - app.offset) * 0.7 + app.offset
         self.setFixedSize(app.size[0] / 2, h)
         self.move(app.size[0] / 4,
-                   (app.size[1] - app.offset - h) / 2 + app.offset)
+                  (app.size[1] - app.offset - h) / 2 + app.offset)
         bg_clr = 'rgba(229,190,149,70%)'
         border = int(app.size[0] / 75)
         border_clr = 'rgba(88,65,49,100%)'
@@ -339,8 +339,6 @@ class Score_Window(QWidget):
             style += 'crimson'
             self.status.setText('You LOST :(')
         self.status.setStyleSheet(style)
-
-
 
 
 class Header_Window(QWidget):
