@@ -44,8 +44,8 @@ class Textures():
         Scales balls textures to new radius
         '''
         for k, v in self.balls.items():
-                new_value = []
-                for i in range(len(v)):
-                    new_map = v[i].scaled(2 * r, 2 * r)
-                    new_value.append(new_map)
-                self.balls[k] = new_value
+            new_value = []
+            for i in range(len(v)):
+                new_map = v[i].scaled(2 * r, 2 * r)
+                new_value.append(new_map)
+            self.balls[k] = new_value

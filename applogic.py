@@ -145,7 +145,8 @@ class Application(QMainWindow):
             pos = (event.x(), event.y() - self.offset)
             angle = engine.get_angle(self.level.p.pos, pos)
             self.level.p.set_rotation(math.pi * 2 - angle)
-            self.level.p.shoot()
+            if len(self.level.come_back) == 0:
+                self.level.p.shoot()
 
     def closeEvent(self, event):
         '''
@@ -182,7 +183,8 @@ class Application(QMainWindow):
                 self.help.hide()
                 sys.exit()
         elif key == Qt.Key_Space or key == Qt.Key_Up:
-            self.level.p.shoot()
+            if len(self.level.come_back) == 0:
+                self.level.p.shoot()
         elif key == Qt.Key_X or key == Qt.Key_Down:
             self.level.p.swap()
 
