@@ -33,6 +33,7 @@ class Level:
         self.won = False
         self.tex_name = tex_name_prefix
         self.highscores = highscores
+        self.music_queue = []
 
     def switch_modes(self):
         '''
@@ -197,6 +198,7 @@ class Level:
         '''
         Inserts ball in sequence on index position
         '''
+        self.music_queue.append('hit')
         self.balls.insert(index, ball)
         if index == len(self.balls) - 1:
             self.balls[index].pos = self.balls[index - 1].pos
@@ -214,6 +216,7 @@ class Level:
         '''
         Deletes balls from start to end positions
         '''
+        self.music_queue.append('score_up')
         amount = end - start + 1
         self.score += amount * (50 + 10 * (amount - 3))
         for i in range(amount):

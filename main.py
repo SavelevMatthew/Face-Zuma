@@ -5,6 +5,7 @@ import os
 import applogic
 import engine
 import parser
+import sound
 
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -14,7 +15,9 @@ if __name__ == '__main__':
     lw, lh = w, h - offset
     app = QApplication(sys.argv)
     tex = Textures(modes)
+    packs = parser.find_music(modes)
+    music = sound.SoundPlayer(packs, modes[1])
     types = {i: len(j) for i, j in tex.balls.items()}
     levels = parser.parse_levels(lw, lh, types)
-    window = applogic.Application('Zuma', w, h, offset, tex, levels)
+    window = applogic.Application('Zuma', w, h, offset, tex, levels, music)
     sys.exit(app.exec_())

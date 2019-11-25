@@ -9,7 +9,7 @@ from parser import save_levels
 
 
 class Application(QMainWindow):
-    def __init__(self, caption, w, h, offset, tex, levels):
+    def __init__(self, caption, w, h, offset, tex, levels, music):
         '''
         Initialize Game Application
         '''
@@ -30,6 +30,7 @@ class Application(QMainWindow):
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
                              tex.others, self.level.mode)
 
+        self.music = music
         self.help = Help_Window(w / 1.5, h / 2)
         self.level_select = Level_Select_Window(self)
         self.main_menu = Menu_Window(self, self.level.mode)
@@ -38,6 +39,7 @@ class Application(QMainWindow):
         self.show()
         self.main_menu.show()
         self.update_title()
+        self.music.play_bg()
 
     def save_levels(self):
         '''
@@ -51,6 +53,7 @@ class Application(QMainWindow):
         '''
         for i in range(len(self.levels)):
             mode = self.levels[i].switch_modes()
+            self.music.switch(mode)
             self.levels[i].p.mode = mode
             self.levels[i].p.refill_balls()
         self.drawer.mode = mode
@@ -111,6 +114,10 @@ class Application(QMainWindow):
             self.update_title()
             self.timer.stop()
             self.score_window.update_highscores(self.level.highscores)
+            if (self.level.won):
+                self.music.win()
+            else:
+                self.music.loose()
             self.score_window.update_title(self.level.won)
             self.score_window.show()
             self.level.finished = False
@@ -119,6 +126,8 @@ class Application(QMainWindow):
             return
         self.keyHoldEvent()
         self.level.update(self.frame_delta / 1000)
+        self.music.handle_events(self.level.music_queue)
+        self.level.music_queue.clear()
         self.drawer.update_header(self.level.caption, self.level.score)
         self.update_title()
         self.drawer.draw_frame(self.level)
@@ -145,8 +154,10 @@ class Application(QMainWindow):
             pos = (event.x(), event.y() - self.offset)
             angle = engine.get_angle(self.level.p.pos, pos)
             self.level.p.set_rotation(math.pi * 2 - angle)
-            if len(self.level.come_back) == 0:
+            if not self.level_window.isHidden() and \
+               len(self.level.come_back) == 0:
                 self.level.p.shoot()
+                self.music.shoot()
 
     def closeEvent(self, event):
         '''
@@ -183,10 +194,14 @@ class Application(QMainWindow):
                 self.help.hide()
                 sys.exit()
         elif key == Qt.Key_Space or key == Qt.Key_Up:
-            if len(self.level.come_back) == 0:
+            if not self.level_window.isHidden() and \
+               len(self.level.come_back) == 0:
                 self.level.p.shoot()
+                self.music.shoot()
         elif key == Qt.Key_X or key == Qt.Key_Down:
-            self.level.p.swap()
+            if not self.level_window.isHidden():
+                self.level.p.swap()
+                self.music.swap()
 
     def keyReleaseEvent(self, event):
         '''
@@ -218,6 +233,7 @@ class Level_Window(QWidget):
         self.setParent(app)
         self.setFixedSize(app.size[0], app.size[1] - app.offset)
         self.move(0, app.offset)
+        self.hide()
 
 
 class Score_Window(QWidget):
