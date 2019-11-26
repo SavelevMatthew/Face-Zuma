@@ -243,6 +243,10 @@ class Level:
                 if p[0] > 0 and p[0] < len(self.balls) - 1:
                     self.move_balls_head_by_distance(p[0], self.r * 2, True)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9fb8ba86f348e69cb31fcceb82605607fc810de6
     def insert_ball(self, index, ball):
         '''
         Inserts ball in sequence on index position
