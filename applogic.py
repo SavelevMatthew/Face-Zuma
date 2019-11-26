@@ -21,14 +21,15 @@ class Application(QMainWindow):
                              'K_A': False, 'K_D': False}
         self.levels = levels
         self.level = levels[0]
-        self.timer = QBasicTimer()
         self.frame_delta = 16
+        self.timer = QBasicTimer()
         self.offset = offset
         self.level_window = Level_Window(self)
         self.header = Header_Window(self)
         self.tex = tex
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
                              tex.others, self.level.mode)
+        self.mute = False
 
         self.music = music
         self.help = Help_Window(w / 1.5, h / 2)
@@ -40,6 +41,20 @@ class Application(QMainWindow):
         self.main_menu.show()
         self.update_title()
         self.music.play_bg()
+
+    def mute_music(self):
+        '''
+        Mute / unmute ingame sounds
+        '''
+        if self.mute:
+            self.music.unmute()
+            self.main_menu.mute.setText(' 🔊')
+            self.music.play_bg()
+            self.mute = False
+        else:
+            self.music.mute()
+            self.main_menu.mute.setText(' 🔇')
+            self.mute = True
 
     def save_levels(self):
         '''
@@ -53,7 +68,8 @@ class Application(QMainWindow):
         '''
         for i in range(len(self.levels)):
             mode = self.levels[i].switch_modes()
-            self.music.switch(mode)
+            self.music.switch(mode, self.mute)
+
             self.levels[i].p.mode = mode
             self.levels[i].p.refill_balls()
         self.drawer.mode = mode
@@ -62,6 +78,8 @@ class Application(QMainWindow):
         '''
         Closes level-select menu and opening Main one
         '''
+        if not self.mute:
+            self.music.play_bg()
         self.level_select.hide()
         self.score_window.hide()
         self.main_menu.show()
@@ -73,6 +91,7 @@ class Application(QMainWindow):
         level_id used to choose, which level we want to run
         '''
         self.level = self.levels[level_id]
+        self.level.score = 0
         self.tex.scale_balls(self.level.r)
         self.show()
         self.drawer.init_level(self.size[0], self.size[1],
@@ -81,12 +100,14 @@ class Application(QMainWindow):
         self.level_window.lower()
         self.header.show()
         self.level.p.refill_balls()
-        self.timer.start(16, self)
+        self.timer.start(self.frame_delta, self)
 
     def restart(self):
         '''
         Restarts current game
         '''
+        if not self.mute:
+            self.music.play_bg()
         self.finish_game()
         id = self.levels.index(self.level)
         self.start(id)
@@ -114,10 +135,12 @@ class Application(QMainWindow):
             self.update_title()
             self.timer.stop()
             self.score_window.update_highscores(self.level.highscores)
-            if (self.level.won):
-                self.music.win()
-            else:
-                self.music.loose()
+            self.music.stop_bg()
+            if not self.mute:
+                if (self.level.won):
+                    self.music.win()
+                else:
+                    self.music.loose()
             self.score_window.update_title(self.level.won)
             self.score_window.show()
             self.level.finished = False
@@ -126,7 +149,10 @@ class Application(QMainWindow):
             return
         self.keyHoldEvent()
         self.level.update(self.frame_delta / 1000)
-        self.music.handle_events(self.level.music_queue)
+        if self.mute:
+            self.level.music_queue.clear()
+        else:
+            self.music.handle_events(self.level.music_queue)
         self.level.music_queue.clear()
         self.drawer.update_header(self.level.caption, self.level.score)
         self.update_title()
@@ -157,7 +183,8 @@ class Application(QMainWindow):
             if not self.level_window.isHidden() and \
                len(self.level.come_back) == 0:
                 self.level.p.shoot()
-                self.music.shoot()
+                if not self.mute:
+                    self.music.shoot()
 
     def closeEvent(self, event):
         '''
@@ -197,11 +224,13 @@ class Application(QMainWindow):
             if not self.level_window.isHidden() and \
                len(self.level.come_back) == 0:
                 self.level.p.shoot()
-                self.music.shoot()
+                if not self.mute:
+                    self.music.shoot()
         elif key == Qt.Key_X or key == Qt.Key_Down:
             if not self.level_window.isHidden():
                 self.level.p.swap()
-                self.music.swap()
+                if not self.mute:
+                    self.music.swap()
 
     def keyReleaseEvent(self, event):
         '''
@@ -417,6 +446,13 @@ class Menu_Window(QWidget):
         self.help.move(app.size[0] * 0.65, app.size[1] * 0.715)
         self.help.setStyleSheet(style)
         self.help.clicked.connect(app.help.show)
+        self.help.show()
+
+        self.mute = QPushButton(' 🔊', self)
+        self.mute.setFixedSize(app.size[0] * 0.1, app.size[1] / 6)
+        self.mute.move(app.size[0] * 0.25, app.size[1] * 0.715)
+        self.mute.setStyleSheet(style)
+        self.mute.clicked.connect(app.mute_music)
         self.help.show()
 
     def switch_mode(self, name):

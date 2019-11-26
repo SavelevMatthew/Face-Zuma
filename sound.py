@@ -21,7 +21,7 @@ class SoundPack():
         self.back.setPlaybackMode(QMediaPlaylist.Loop)
         self.bg = QMediaPlayer()
         self.bg.setPlaylist(self.back)
-        self.bg.setVolume(20)
+        self.bg.setVolume(30)
 
         self.shoot = QSound(shoot)
         self.hit = QSound(hit)
@@ -46,11 +46,29 @@ class SoundPlayer():
             'score_up': self.score_up,
         }
 
+    def mute(self):
+        '''
+        Mutes backgroung sound
+        '''
+        self.packs[self.curr].bg.setVolume(0)
+
+    def unmute(self):
+        '''
+        Unmutes backgroung sound
+        '''
+        self.packs[self.curr].bg.setVolume(30)
+
     def play_bg(self):
         '''
         Plays background music
         '''
         self.packs[self.curr].bg.play()
+
+    def stop_bg(self):
+        '''
+        Stops playing background music
+        '''
+        self.packs[self.curr].bg.stop()
 
     def shoot(self):
         '''
@@ -88,11 +106,17 @@ class SoundPlayer():
         '''
         self.packs[self.curr].win.play()
 
-    def switch(self, new_mode):
+    def switch(self, new_mode, muted):
         '''
         Switches the game mode to new_mode
         '''
+        self.packs[self.curr].bg.stop()
         self.curr = new_mode
+        self.packs[self.curr].bg.play()
+        if muted:
+            self.packs[self.curr].bg.setVolume(0)
+        else:
+            self.packs[self.curr].bg.setVolume(30)
 
     def handle_events(self, queue):
         '''

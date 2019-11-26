@@ -90,7 +90,7 @@ def find_music(modes):
         if os.path.exists(dir):
             bg = []
             bg_folder = os.path.join(dir, 'bg')
-            for fi in bg_folder:
+            for fi in sorted(os.listdir(bg_folder)):
                 f_name = os.path.join(bg_folder, fi)
                 if (fi.endswith('.mp3') or fi.endswith('.wav')) and \
                    os.path.isfile(f_name):
