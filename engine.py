@@ -2,13 +2,15 @@ import math
 import random
 from ball import Ball
 from player import Player
+from random import randint
 
 
 class Level:
     def __init__(self, caption, width, height, types, checkpoints,
                  ball_amount, ball_radius, ball_speed, player_pos,
                  player_rotaion, player_bullet_speed, tex_name_prefix,
-                 highscores):
+                 highscores, bonuses):
+        self.bonuses = bonuses
         self.types = types
         self.modes = list(types.keys())
         self.mode = self.modes[1]
@@ -34,6 +36,8 @@ class Level:
         self.tex_name = tex_name_prefix
         self.highscores = highscores
         self.music_queue = []
+        # times in milliseconds
+        self.debuffs = {}
 
     def switch_modes(self):
         '''
@@ -64,19 +68,32 @@ class Level:
         type = self.balls[start_index].type
         i = start_index - 1
         while i >= 0:
-            if self.balls[i].type == type:
+            if self.balls[i].type == type or self.balls[i].status == 3:
                 st -= 1
             else:
                 break
             i -= 1
         i = start_index + 1
         while i < len(self.balls):
-            if self.balls[i].type == type:
+            if self.balls[i].type == type or self.balls[i].status == 3:
                 fin += 1
             else:
                 break
             i += 1
         return (st, fin)
+
+    def check_bonuses(self, hit_index):
+        '''
+        Check ball neighbours for bonuses
+        if find some, return index
+        '''
+        result = []
+        if hit_index >= 1 and self.balls[hit_index - 1].type < 0:
+            result.append(hit_index - 1)
+        if hit_index < len(self.balls) - 1 and \
+           self.balls[hit_index + 1].type < 0:
+            result.append(hit_index + 1)
+        return result
 
     def clear_trash(self):
         '''
@@ -89,14 +106,29 @@ class Level:
             if bull[0].status == 4:
                 self.p.bullets.remove(bull)
 
+    def update_debuffs(self, time_delta):
+        '''
+        Updates debuffs status
+        '''
+        for i in list(self.debuffs):
+            v = self.debuffs[i] - time_delta * 1000
+            if v <= 0:
+                del self.debuffs[i]
+            else:
+                self.debuffs[i] = v
+
     def update(self, time_delta):
+        self.update_debuffs(time_delta)
         '''
         Updates game condition
 
         time_delta is time passed from last call
         '''
         if len(self.come_back) == 0:
-            self.move_balls_head_by_time(len(self.balls), time_delta)
+            if 'slow' in self.debuffs:
+                self.move_balls_head_by_time(len(self.balls), time_delta / 2)
+            else:
+                self.move_balls_head_by_time(len(self.balls), time_delta)
         else:
             amount = self.come_back[0]
             self.move_balls_head_by_time(amount, time_delta * 3, True)
@@ -114,8 +146,12 @@ class Level:
                                              self.balls[len(self.balls) - 1]
                                                  .pos) >=
                                 self.r * 2):
-            b = Ball(random.randint(0, self.ball_amount - 1),
-                     self.r, self.cp[0])
+            if luck_check(7) and len(self.bonuses) > 0:
+                b = Ball(random.randint(-len(self.bonuses), -1),
+                         self.r, self.cp[0])
+            else:
+                b = Ball(random.randint(0, self.ball_amount - 1),
+                         self.r, self.cp[0])
             self.balls.append(b)
             self.amount -= 1
         if len(self.come_back) == 0:
@@ -194,6 +230,20 @@ class Level:
             mi += 1
         return dist
 
+    def handle_bonuses(self, bonuses):
+        '''
+        Handle bonuses
+        '''
+        pairs = [(x, self.bonuses[- self.balls[x].type - 1]) for x in bonuses]
+        for p in pairs:
+            if p[1] == 'slow':
+                self.debuffs['slow'] = 5000
+                self.music_queue.append('score_up')
+                self.balls[p[0]].status = 3
+                if p[0] > 0 and p[0] < len(self.balls) - 1:
+                    self.move_balls_head_by_distance(p[0], self.r * 2, True)
+
+
     def insert_ball(self, index, ball):
         '''
         Inserts ball in sequence on index position
@@ -208,6 +258,8 @@ class Level:
             self.balls[index].pos = self.balls[index + 1].pos
             self.balls[index].goal = self.balls[index + 1].goal
             self.move_balls_head_by_distance(index + 1, self.r * 2)
+        bonuses = self.check_bonuses(index)
+        self.handle_bonuses(bonuses)
         s = self.check_sequence(index)
         if s[1] - s[0] >= 2:
             self.delete_ball_sequence(s[0], s[1])
@@ -218,11 +270,14 @@ class Level:
         '''
         self.music_queue.append('score_up')
         amount = end - start + 1
-        self.score += amount * (50 + 10 * (amount - 3))
+        scored = 0
         for i in range(amount):
-            self.balls[start + i].status = 3
+            if self.balls[start + i].status != 3:
+                scored += 1
+                self.balls[start + i].status = 3
         if len(self.balls) - 1 != end and start != 0:
             self.come_back.append(start)
+        self.score += scored * (50 + 10 * (scored - 3))
 
     def move_ball_by_distance(self, ball, dx, backward=False):
         '''
@@ -313,6 +368,13 @@ def get_angle2(end1, corner, end2):
     if a > math.pi:
         return math.pi * 2 - a
     return math.fabs(a)
+
+
+def luck_check(chance):
+    '''
+    With a chosen chance return True
+    '''
+    return randint(0, 100) < chance
 
 
 def is_in_border(p, b1, b2):

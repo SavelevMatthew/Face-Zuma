@@ -4,7 +4,7 @@ from engine import Level
 from sound import SoundPack
 
 
-def read_level(filename, w, h, types):
+def read_level(filename, w, h, types, bonuses):
     '''
     Gets level information from file and returns new level based on it
 
@@ -26,10 +26,11 @@ def read_level(filename, w, h, types):
         while len(highscores) < 5:
             highscores.append(0)
         return Level(name, w, h, types, points, amount, radius, ball_speed,
-                     player_pos, 3, bull_speed, tex_prefix, highscores)
+                     player_pos, 3, bull_speed, tex_prefix, highscores,
+                     bonuses)
 
 
-def parse_levels(w, h, types):
+def parse_levels(w, h, types, bonuses):
     '''
     Scans levels directory for json files named with "level", gets their data,
     and returns levels list
@@ -40,7 +41,7 @@ def parse_levels(w, h, types):
     for file in sorted(os.listdir('levels')):
         if 'level' in file and file.endswith('.json'):
             name = os.path.join('levels', file)
-            levels.append(read_level(name, w, h, types))
+            levels.append(read_level(name, w, h, types, bonuses))
     return levels
 
 

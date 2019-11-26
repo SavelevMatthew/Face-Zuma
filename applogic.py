@@ -9,7 +9,7 @@ from parser import save_levels
 
 
 class Application(QMainWindow):
-    def __init__(self, caption, w, h, offset, tex, levels, music):
+    def __init__(self, caption, w, h, offset, tex, levels, music, bonuses):
         '''
         Initialize Game Application
         '''
@@ -28,7 +28,7 @@ class Application(QMainWindow):
         self.header = Header_Window(self)
         self.tex = tex
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
-                             tex.others, self.level.mode)
+                             tex.others, self.level.mode, bonuses)
         self.mute = False
 
         self.music = music
