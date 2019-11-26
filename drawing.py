@@ -3,7 +3,9 @@ from PyQt5.QtCore import Qt
 
 
 class Drawer():
-    def __init__(self, level_widget, header_window, textures, others, mode):
+    def __init__(self, level_widget, header_window, textures, others, mode,
+                 bonuses):
+        self.bonuses = bonuses
         self.parent = level_widget
         self.header_window = header_window
         self.labels = {}
@@ -35,7 +37,10 @@ class Drawer():
         if ball.status == 0:
             label = QLabel(self.parent)
             label.setStyleSheet('background-color: rgba(0,0,0,0%)')
-            label.setPixmap(self.tex_balls[self.mode][ball.type])
+            if ball.type >= 0:
+                label.setPixmap(self.tex_balls[self.mode][ball.type])
+            else:
+                label.setPixmap(self.tex_others[self.bonuses[- ball.type - 1]])
             label.setFixedSize(ball.r * 2, ball.r * 2)
             label.show()
             self.labels[ball] = label
@@ -52,9 +57,11 @@ class Drawer():
         '''
         Draws ball on a screen
         '''
-        self.labels[ball].setPixmap(
-            self.tex_balls[self.mode][ball.type].scaled(ball.r * 2,
-                                                        ball.r * 2))
+        if ball.type >= 0:
+            map = self.tex_balls[self.mode][ball.type]
+        else:
+            map = self.tex_others[self.bonuses[- ball.type - 1]]
+        self.labels[ball].setPixmap(map.scaled(ball.r * 2, ball.r * 2))
         self.labels[ball].move(ball.pos[0] - ball.r, ball.pos[1] - ball.r)
 
     def init_level(self, w, h, offset, prefix):

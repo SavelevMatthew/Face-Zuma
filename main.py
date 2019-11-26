@@ -10,6 +10,7 @@ import sound
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     modes = ['Faces', 'Classic']
+    bonuses = ['slow']
     offset = 50
     w, h = 800, 600
     lw, lh = w, h - offset
@@ -18,6 +19,7 @@ if __name__ == '__main__':
     packs = parser.find_music(modes)
     music = sound.SoundPlayer(packs, modes[1])
     types = {i: len(j) for i, j in tex.balls.items()}
-    levels = parser.parse_levels(lw, lh, types)
-    window = applogic.Application('Zuma', w, h, offset, tex, levels, music)
+    levels = parser.parse_levels(lw, lh, types, bonuses)
+    window = applogic.Application('Zuma', w, h, offset, tex, levels, music,
+                                  bonuses)
     sys.exit(app.exec_())
