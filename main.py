@@ -10,7 +10,7 @@ import sound
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     modes = ['Faces', 'Classic']
-    bonuses = ['slow']
+    bonuses = ['slow', 'bomb']
     offset = 50
     w, h = 800, 600
     lw, lh = w, h - offset

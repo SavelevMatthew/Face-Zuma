@@ -2,8 +2,8 @@
 ===============================================================================
 Author: Savelev Matthew
 Current version:
-  - Official 5.0 Release
-  - Beta 5.1
+  - Official 7.0 Release
+  - Beta 7.0
 ===============================================================================
 # Description:
 Why don't you remember old days and play a classic game with different design?

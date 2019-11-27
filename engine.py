@@ -146,7 +146,7 @@ class Level:
                                              self.balls[len(self.balls) - 1]
                                                  .pos) >=
                                 self.r * 2):
-            if luck_check(7) and len(self.bonuses) > 0:
+            if luck_check(8) and len(self.bonuses) > 0:
                 b = Ball(random.randint(-len(self.bonuses), -1),
                          self.r, self.cp[0])
             else:
@@ -172,31 +172,31 @@ class Level:
                             a2 = get_angle2(bul_pair[0].pos, self.balls[0].pos,
                                             self.cp[self.balls[0].goal - 1])
                             if a1 < a2:
-                                self.insert_ball(0, bul_pair[0])
+                                self.insert_ball(0, bul_pair[0], 1)
                             else:
-                                self.insert_ball(1, bul_pair[0])
+                                self.insert_ball(1, bul_pair[0], 0)
 
                         elif i == 0:
                             if get_angle2(bul_pair[0].pos, self.balls[i].pos,
                                           self.balls[i + 1].pos) < math.pi / 2:
-                                self.insert_ball(1, bul_pair[0])
+                                self.insert_ball(1, bul_pair[0], 0)
                             else:
-                                self.insert_ball(0, bul_pair[0])
+                                self.insert_ball(0, bul_pair[0], 1)
                         elif i == len(self.balls) - 1:
                             if get_angle2(bul_pair[0].pos, self.balls[i].pos,
                                           self.balls[i - 1].pos) < math.pi / 2:
-                                self.insert_ball(i, bul_pair[0])
+                                self.insert_ball(i, bul_pair[0], i + 1)
                             else:
-                                self.insert_ball(i + 1, bul_pair[0])
+                                self.insert_ball(i + 1, bul_pair[0], i)
                         else:
                             d1 = get_distance(bul_pair[0].pos,
                                               self.balls[i - 1].pos)
                             d2 = get_distance(bul_pair[0].pos,
                                               self.balls[i + 1].pos)
                             if d1 < d2:
-                                self.insert_ball(i, bul_pair[0])
+                                self.insert_ball(i, bul_pair[0], i + 1)
                             else:
-                                self.insert_ball(i + 1, bul_pair[0])
+                                self.insert_ball(i + 1, bul_pair[0], i)
                         counter -= 1
                         self.p.bullets.remove(bul_pair)
                         break
@@ -230,24 +230,35 @@ class Level:
             mi += 1
         return dist
 
-    def handle_bonuses(self, bonuses):
+    def handle_bonus(self, bonus):
+        '''
+        Handle bonus ball
+        '''
+        type = self.bonuses[- self.balls[bonus].type - 1]
+        if type == 'slow':
+            self.debuffs['slow'] = 5000
+            self.music_queue.append('score_up')
+            self.balls[bonus].status = 3
+            if bonus > 0 and bonus < len(self.balls) - 1:
+                self.move_balls_head_by_distance(bonus, self.r * 2, True)
+        elif type == 'bomb':
+            start = max(bonus - 2, 0)
+            finish = min(bonus + 2, len(self.balls) - 1)
+            self.delete_ball_sequence(start, finish)
+
+    def handle_bonuses(self, bonuses, neighbour):
         '''
         Handle bonuses
         '''
-        pairs = [(x, self.bonuses[- self.balls[x].type - 1]) for x in bonuses]
-        for p in pairs:
-            if p[1] == 'slow':
-                self.debuffs['slow'] = 5000
-                self.music_queue.append('score_up')
-                self.balls[p[0]].status = 3
-                if p[0] > 0 and p[0] < len(self.balls) - 1:
-                    self.move_balls_head_by_distance(p[0], self.r * 2, True)
+        if len(bonuses) == 1:
+            self.handle_bonus(bonuses[0])
+        elif len(bonuses) == 2:
+            if neighbour == bonuses[0]:
+                self.handle_bonus(bonuses[0])
+            else:
+                self.handle_bonus(bonuses[1])
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 9fb8ba86f348e69cb31fcceb82605607fc810de6
-    def insert_ball(self, index, ball):
+    def insert_ball(self, index, ball, neighbour):
         '''
         Inserts ball in sequence on index position
         '''
@@ -262,10 +273,12 @@ class Level:
             self.balls[index].goal = self.balls[index + 1].goal
             self.move_balls_head_by_distance(index + 1, self.r * 2)
         bonuses = self.check_bonuses(index)
-        self.handle_bonuses(bonuses)
-        s = self.check_sequence(index)
-        if s[1] - s[0] >= 2:
-            self.delete_ball_sequence(s[0], s[1])
+        if len(bonuses) > 0:
+            self.handle_bonuses(bonuses, neighbour)
+        else:
+            s = self.check_sequence(index)
+            if s[1] - s[0] >= 2:
+                self.delete_ball_sequence(s[0], s[1])
 
     def delete_ball_sequence(self, start, end):
         '''
