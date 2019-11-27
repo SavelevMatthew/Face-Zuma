@@ -13,7 +13,7 @@ class Level:
         self.bonuses = bonuses
         self.types = types
         self.modes = list(types.keys())
-        self.mode = self.modes[1]
+        self.mode = self.modes[0]
         self.ball_amount = self.types[self.mode]
         self.caption = caption
         self.ball_count = ball_amount

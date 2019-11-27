@@ -8,7 +8,7 @@ class Ball:
 
     def move(self, dx, dy):
         '''
-        Moves ball to (dx, dy) coordinates
+        Moves ball by changing coords on (dx, dy)
 
         dx, dy - coordinates of ball center
         '''

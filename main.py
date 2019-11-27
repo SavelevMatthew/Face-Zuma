@@ -9,7 +9,7 @@ import sound
 
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
-    modes = ['Faces', 'Classic']
+    modes = ['Classic', 'Faces']
     bonuses = ['slow', 'bomb']
     offset = 50
     w, h = 800, 600
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     tex = Textures(modes)
     packs = parser.find_music(modes)
-    music = sound.SoundPlayer(packs, modes[1])
+    music = sound.SoundPlayer(packs, modes[0])
     types = {i: len(j) for i, j in tex.balls.items()}
     levels = parser.parse_levels(lw, lh, types, bonuses)
     window = applogic.Application('Zuma', w, h, offset, tex, levels, music,
