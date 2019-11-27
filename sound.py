@@ -62,6 +62,7 @@ class SoundPlayer():
         '''
         Plays background music
         '''
+        self.packs[self.curr].bg.playlist().shuffle()
         self.packs[self.curr].bg.play()
 
     def stop_bg(self):
@@ -112,6 +113,7 @@ class SoundPlayer():
         '''
         self.packs[self.curr].bg.stop()
         self.curr = new_mode
+        self.packs[self.curr].bg.playlist().shuffle()
         self.packs[self.curr].bg.play()
         if muted:
             self.packs[self.curr].bg.setVolume(0)
