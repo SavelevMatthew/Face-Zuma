@@ -21,5 +21,5 @@ if __name__ == '__main__':
     types = {i: len(j) for i, j in tex.balls.items()}
     levels = parser.parse_levels(lw, lh, types, bonuses)
     window = applogic.Application('Zuma', w, h, offset, tex, levels, music,
-                                  bonuses)
+                                  bonuses, modes)
     sys.exit(app.exec_())

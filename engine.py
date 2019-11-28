@@ -39,15 +39,6 @@ class Level:
         # times in milliseconds
         self.debuffs = {}
 
-    def switch_modes(self):
-        '''
-        Changes textures mod to next one and returns value of current mode
-        '''
-        index = self.modes.index(self.mode)
-        self.mode = self.modes[(index + 1) % len(self.modes)]
-        self.ball_amount = self.types[self.mode]
-        return self.mode
-
     def update_highscores(self):
         '''
         Checking current highscores and record it if it's higher than Top 5

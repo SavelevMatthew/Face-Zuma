@@ -6,13 +6,17 @@ import engine
 import math
 from copy import deepcopy
 from parser import save_levels
+import pickle
 
 
 class Application(QMainWindow):
-    def __init__(self, caption, w, h, offset, tex, levels, music, bonuses):
+    def __init__(self, caption, w, h, offset, tex, levels, music, bonuses,
+                 modes):
         '''
         Initialize Game Application
         '''
+        self.modes = modes
+        self.mode = modes[0]
         super().__init__()
         self.caption = caption
         self.size = (w, h)
@@ -42,6 +46,9 @@ class Application(QMainWindow):
         self.update_title()
         self.music.play_bg()
 
+        self.save = None
+        self.load_save()
+
     def mute_music(self):
         '''
         Mute / unmute ingame sounds
@@ -66,13 +73,16 @@ class Application(QMainWindow):
         '''
         Changes mode to next one
         '''
+        index = self.modes.index(self.mode)
+        index = (index + 1) % len(self.modes)
+        self.mode = self.modes[index]
+        self.music.switch(self.mode, self.mute)
         for i in range(len(self.levels)):
-            mode = self.levels[i].switch_modes()
-            self.music.switch(mode, self.mute)
-
-            self.levels[i].p.mode = mode
+            self.levels[i].ball_amount = self.levels[i].types[self.mode]
+            self.levels[i].mode = self.mode
+            self.levels[i].p.mode = self.mode
             self.levels[i].p.refill_balls()
-        self.drawer.mode = mode
+        self.drawer.mode = self.mode
 
     def got_to_main(self):
         '''
@@ -84,6 +94,27 @@ class Application(QMainWindow):
         self.score_window.hide()
         self.main_menu.show()
 
+    def save_current_game(self):
+        '''
+        Saves current level condition in save.pickle
+        '''
+        with open('save.pickle', 'wb') as f:
+            pickle.dump(self.level, f)
+
+    def load_save(self):
+        '''
+        Loads saved game if it exists
+        '''
+        with open('save.pickle', 'rb') as f:
+            self.save = pickle.load(f)
+            if self.save is not None:
+                self.main_menu.switch_play_mode()
+                self.level = self.save
+                for i in range(len(self.levels)):
+                    if self.levels[i].caption == self.save.caption:
+                        self.levels[i] = self.save
+                        return
+
     def start(self, level_id):
         '''
         Prepare level environment and then start the GAME
@@ -91,6 +122,7 @@ class Application(QMainWindow):
         level_id used to choose, which level we want to run
         '''
         self.level = self.levels[level_id]
+        self.drawer.mode = self.mode
         self.level.score = 0
         self.tex.scale_balls(self.level.r)
         self.show()
@@ -100,6 +132,34 @@ class Application(QMainWindow):
         self.level_window.lower()
         self.header.show()
         self.level.p.refill_balls()
+        self.timer.start(self.frame_delta, self)
+
+    def resume(self):
+        '''
+        Resume current level
+        '''
+        self.tex.scale_balls(self.level.r)
+        self.drawer.init_level(self.size[0], self.size[1],
+                               self.offset, self.level.tex_name)
+        self.drawer.mode = self.level.mode
+        for ball in self.level.balls:
+            if ball.status == 1:
+                ball.status = 0
+            elif ball.status == 3:
+                ball.status = 4
+        for bull in self.level.p.bullets:
+            if bull[0].status == 1:
+                bull[0].status = 0
+            elif bull[0].status == 3:
+                bull[0].status = 4
+        self.level.p.first.status = 0
+        self.level.p.second.status = 0
+        self.drawer.labels.clear()
+        self.level_window.show()
+        self.level_window.lower()
+        self.header.show()
+        self.main_menu.hide()
+        self.level_select.hide()
         self.timer.start(self.frame_delta, self)
 
     def restart(self):
@@ -191,6 +251,8 @@ class Application(QMainWindow):
         Handles app closing event
         '''
         self.save_levels()
+        if not self.level_window.isHidden():
+            self.save_current_game()
         self.help.hide()
         print('Зочем закрыл? Открой абратна,' +
               'а то Стасян уже выехал за тобой!))0)')
@@ -210,7 +272,15 @@ class Application(QMainWindow):
             self.pressed_keys['K_D'] = True
         elif key == Qt.Key_Escape:
             if not self.level_window.isHidden():
-                self.finish_game()
+                self.save_current_game()
+                self.save = self.level
+                self.main_menu.switch_play_mode()
+                self.timer.stop()
+                self.level_window.deleteLater()
+                self.level_window = Level_Window(self)
+                self.drawer.labels.clear()
+                self.drawer.parent = self.level_window
+                self.drawer.bg = None
                 self.level_window.hide()
                 self.main_menu.show()
             elif not self.level_select.isHidden():
@@ -418,7 +488,19 @@ class Menu_Window(QWidget):
         self.play.setStyleSheet(style)
         self.play.clicked.connect(self.hide)
         self.play.clicked.connect(app.level_select.show)
+        self.play.clicked.connect(self.reset_save)
+        self.play.clicked.connect(lambda: self.parent().finish_game())
         self.play.show()
+
+        self.cont = QPushButton("Continue", self)
+        self.cont.setFixedSize(app.size[0] * 0.225, app.size[1] / 5)
+        self.cont.move(app.size[0] * 0.525, app.size[1] * 0.265)
+        self.cont.setStyleSheet(style)
+        self.cont.clicked.connect(self.switch_play_mode)
+        self.cont.clicked.connect(self.reset_save)
+        self.cont.clicked.connect(self.resume_game)
+        self.cont.hide()
+
         style = 'background-color: {0}; border: {2}px solid {1}; \
                  font-weight: bold; font-family: Phosphate, sans-serif; \
                  color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
@@ -430,6 +512,7 @@ class Menu_Window(QWidget):
         self.mode.move(app.size[0] / 4, app.size[1] * 0.49)
         self.mode.clicked.connect(app.switch_modes)
         self.mode.clicked.connect(lambda: self.switch_mode(app.drawer.mode))
+        self.mode.clicked.connect(self.reset_save)
         self.mode.setStyleSheet(style)
         self.mode.show()
 
@@ -454,6 +537,31 @@ class Menu_Window(QWidget):
         self.mute.setStyleSheet(style)
         self.mute.clicked.connect(app.mute_music)
         self.help.show()
+
+    def reset_save(self):
+        '''
+        Resets game save
+        '''
+        self.parent().save = None
+        with open('save.pickle', 'wb') as f:
+            pickle.dump(None, f)
+        if not self.cont.isHidden():
+            self.switch_play_mode()
+
+    def resume_game(self):
+        self.parent().resume()
+
+    def switch_play_mode(self):
+        '''
+        Resizes top buttons depending on saved level existance
+        '''
+        app = self.parent()
+        if self.cont.isHidden():
+            self.cont.show()
+            self.play.setFixedSize(app.size[0] * 0.225, app.size[1] / 5)
+        else:
+            self.cont.hide()
+            self.play.setFixedSize(app.size[0] / 2, app.size[1] / 5)
 
     def switch_mode(self, name):
         '''

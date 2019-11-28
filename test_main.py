@@ -65,13 +65,6 @@ class TestEngine(unittest.TestCase):
         l.update(16 / 1000)
         self.assertEqual(len(l.balls), 1)
 
-    def test_switch_modes(self):
-        l = Level('Lvl1', 100, 100, {'1': 10, '2': 1}, [(0, 0)], 3, 50,
-                  10, (50, 50), 0, 15, 'lvl1', [0, 0, 0, 0, 0],
-                  ['slow', 'bomb'])
-        self.assertEqual(l.switch_modes(), '2')
-        self.assertEqual(l.switch_modes(), '1')
-
     def test_update_highscores(self):
         l = Level('Lvl1', 100, 100, {'1': 10, '2': 1}, [(0, 0)], 3, 50,
                   10, (50, 50), 0, 15, 'lvl1', [0, 0, 0, 0, 0],
