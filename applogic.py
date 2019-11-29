@@ -202,7 +202,11 @@ class Application(QMainWindow):
                 else:
                     self.music.loose()
             self.score_window.update_title(self.level.won)
+
             self.score_window.show()
+            self.main_menu.reset_save()
+            if not self.main_menu.cont.isHidden():
+                self.main_menu.switch_play_mode()
             self.level.finished = False
             self.level.score = 0
             self.level.won = False
@@ -271,6 +275,7 @@ class Application(QMainWindow):
         elif key == Qt.Key_D:
             self.pressed_keys['K_D'] = True
         elif key == Qt.Key_Escape:
+            self.score_window.hide()
             if not self.level_window.isHidden():
                 self.save_current_game()
                 self.save = self.level
@@ -492,6 +497,11 @@ class Menu_Window(QWidget):
         self.play.clicked.connect(lambda: self.parent().finish_game())
         self.play.show()
 
+        style = 'background-color: {0}; border: {2}px solid {1}; \
+                 font-weight: bold; font-family: Phosphate, sans-serif; \
+                 color: {1}; font-size: {3}px'.format(bg_clr, border_clr,
+                                                      int(app.size[0] / 100),
+                                                      int(app.size[0] * 0.04))
         self.cont = QPushButton("Continue", self)
         self.cont.setFixedSize(app.size[0] * 0.225, app.size[1] / 5)
         self.cont.move(app.size[0] * 0.525, app.size[1] * 0.265)

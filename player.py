@@ -1,5 +1,4 @@
 from ball import Ball
-from graphics import Colors
 import math
 import random
 
