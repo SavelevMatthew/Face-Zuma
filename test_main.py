@@ -1,6 +1,4 @@
 import unittest
-from ball import Ball
-from player import Player
 from math import pi
 from engine import *
 
@@ -186,7 +184,6 @@ class TestEngine(unittest.TestCase):
         lvl = Level('Lvl1', 100, 100, {'1': 10}, [(0, 0), (0, 10), (10, 10)],
                     2, 5, 2, (50, 50), 0, 1, 'lvl1', [0, 0, 0, 0, 0],
                     ['slow', 'bomb'])
-        dt = 2 / lvl.v
         lvl.balls.append(Ball(0, 2, (0, 3)))
         lvl.p.bullets.append((Ball(0, 2, (0, 5)), 0))
         lvl.update(2)

@@ -4,7 +4,6 @@ from drawing import Drawer
 import sys
 import engine
 import math
-from copy import deepcopy
 from parser import save_levels
 import pickle
 
@@ -12,9 +11,9 @@ import pickle
 class Application(QMainWindow):
     def __init__(self, caption, w, h, offset, tex, levels, music, bonuses,
                  modes):
-        '''
+        """
         Initialize Game Application
-        '''
+        """
         self.modes = modes
         self.mode = modes[0]
         super().__init__()
@@ -28,18 +27,18 @@ class Application(QMainWindow):
         self.frame_delta = 16
         self.timer = QBasicTimer()
         self.offset = offset
-        self.level_window = Level_Window(self)
-        self.header = Header_Window(self)
+        self.level_window = LevelWindow(self)
+        self.header = HeaderWindow(self)
         self.tex = tex
         self.drawer = Drawer(self.level_window, self.header, tex.balls,
                              tex.others, self.level.mode, bonuses)
         self.mute = False
 
         self.music = music
-        self.help = Help_Window(w / 1.5, h / 2)
-        self.level_select = Level_Select_Window(self)
-        self.main_menu = Menu_Window(self, self.level.mode)
-        self.score_window = Score_Window(self)
+        self.help = HelpWindow(w / 1.5, h / 2)
+        self.level_select = LevelSelectWindow(self)
+        self.main_menu = MenuWindow(self, self.level.mode)
+        self.score_window = ScoreWindow(self)
 
         self.show()
         self.main_menu.show()
@@ -50,9 +49,9 @@ class Application(QMainWindow):
         self.load_save()
 
     def mute_music(self):
-        '''
+        """
         Mute / unmute ingame sounds
-        '''
+        """
         if self.mute:
             self.music.unmute()
             self.main_menu.mute.setText(' 🔊')
@@ -64,15 +63,15 @@ class Application(QMainWindow):
             self.mute = True
 
     def save_levels(self):
-        '''
+        """
         Saves current highscores in files
-        '''
+        """
         save_levels(self.levels)
 
     def switch_modes(self):
-        '''
+        """
         Changes mode to next one
-        '''
+        """
         index = self.modes.index(self.mode)
         index = (index + 1) % len(self.modes)
         self.mode = self.modes[index]
@@ -85,9 +84,9 @@ class Application(QMainWindow):
         self.drawer.mode = self.mode
 
     def got_to_main(self):
-        '''
+        """
         Closes level-select menu and opening Main one
-        '''
+        """
         if not self.mute:
             self.music.play_bg()
         self.level_select.hide()
@@ -95,16 +94,16 @@ class Application(QMainWindow):
         self.main_menu.show()
 
     def save_current_game(self):
-        '''
+        """
         Saves current level condition in save.pickle
-        '''
+        """
         with open('save.pickle', 'wb') as f:
             pickle.dump(self.level, f)
 
     def load_save(self):
-        '''
+        """
         Loads saved game if it exists
-        '''
+        """
         with open('save.pickle', 'rb') as f:
             self.save = pickle.load(f)
             if self.save is not None:
@@ -116,11 +115,11 @@ class Application(QMainWindow):
                         return
 
     def start(self, level_id):
-        '''
+        """
         Prepare level environment and then start the GAME
 
         level_id used to choose, which level we want to run
-        '''
+        """
         self.level = self.levels[level_id]
         self.drawer.mode = self.mode
         self.level.score = 0
@@ -135,9 +134,9 @@ class Application(QMainWindow):
         self.timer.start(self.frame_delta, self)
 
     def resume(self):
-        '''
+        """
         Resume current level
-        '''
+        """
         self.tex.scale_balls(self.level.r)
         self.drawer.init_level(self.size[0], self.size[1],
                                self.offset, self.level.tex_name)
@@ -163,24 +162,24 @@ class Application(QMainWindow):
         self.timer.start(self.frame_delta, self)
 
     def restart(self):
-        '''
+        """
         Restarts current game
-        '''
+        """
         if not self.mute:
             self.music.play_bg()
         self.finish_game()
-        id = self.levels.index(self.level)
-        self.start(id)
+        level_id = self.levels.index(self.level)
+        self.start(level_id)
 
     def finish_game(self):
-        '''
+        """
         Stops the game and clean all visual trash, which is left from previous
         game.
-        '''
+        """
         self.timer.stop()
         self.level.amount = self.level.ball_count
         self.level_window.deleteLater()
-        self.level_window = Level_Window(self)
+        self.level_window = LevelWindow(self)
         self.drawer.labels.clear()
         self.drawer.parent = self.level_window
         self.drawer.bg = None
@@ -188,16 +187,16 @@ class Application(QMainWindow):
         self.level.p.bullets.clear()
 
     def timerEvent(self, event):
-        '''
+        """
         Running every frame and update game and drawing condition
-        '''
-        if(self.level.finished):
+        """
+        if self.level.finished:
             self.update_title()
             self.timer.stop()
             self.score_window.update_highscores(self.level.highscores)
             self.music.stop_bg()
             if not self.mute:
-                if (self.level.won):
+                if self.level.won:
                     self.music.win()
                 else:
                     self.music.loose()
@@ -224,9 +223,9 @@ class Application(QMainWindow):
         self.level.clear_trash()
 
     def update_title(self):
-        '''
+        """
         Updates game title
-        '''
+        """
         win_cond = ''
         if self.level.finished:
             if self.level.won:
@@ -237,9 +236,9 @@ class Application(QMainWindow):
         self.setWindowTitle(title)
 
     def mousePressEvent(self, event):
-        '''
+        """
         Handles mouse press events
-        '''
+        """
         if event.button() == Qt.LeftButton:
             pos = (event.x(), event.y() - self.offset)
             angle = engine.get_angle(self.level.p.pos, pos)
@@ -251,9 +250,9 @@ class Application(QMainWindow):
                     self.music.shoot()
 
     def closeEvent(self, event):
-        '''
+        """
         Handles app closing event
-        '''
+        """
         self.save_levels()
         if not self.level_window.isHidden():
             self.save_current_game()
@@ -262,9 +261,9 @@ class Application(QMainWindow):
               'а то Стасян уже выехал за тобой!))0)')
 
     def keyPressEvent(self, event):
-        '''
+        """
         Handles key pressing events
-        '''
+        """
         key = event.key()
         if key == Qt.Key_Left:
             self.pressed_keys['K_LEFT'] = True
@@ -282,7 +281,7 @@ class Application(QMainWindow):
                 self.main_menu.switch_play_mode()
                 self.timer.stop()
                 self.level_window.deleteLater()
-                self.level_window = Level_Window(self)
+                self.level_window = LevelWindow(self)
                 self.drawer.labels.clear()
                 self.drawer.parent = self.level_window
                 self.drawer.bg = None
@@ -308,9 +307,9 @@ class Application(QMainWindow):
                     self.music.swap()
 
     def keyReleaseEvent(self, event):
-        '''
+        """
         Handles key releasing events
-        '''
+        """
         key = event.key()
         if key == Qt.Key_Left:
             self.pressed_keys['K_LEFT'] = False
@@ -322,16 +321,16 @@ class Application(QMainWindow):
             self.pressed_keys['K_D'] = False
 
     def keyHoldEvent(self):
-        '''
+        """
         Handles holding keys events
-        '''
+        """
         if self.pressed_keys['K_RIGHT'] or self.pressed_keys['K_D']:
             self.level.p.rotate(-self.level.rot)
         elif self.pressed_keys['K_LEFT'] or self.pressed_keys['K_A']:
             self.level.p.rotate(self.level.rot)
 
 
-class Level_Window(QWidget):
+class LevelWindow(QWidget):
     def __init__(self, app):
         super().__init__()
         self.setParent(app)
@@ -340,7 +339,7 @@ class Level_Window(QWidget):
         self.hide()
 
 
-class Score_Window(QWidget):
+class ScoreWindow(QWidget):
     def __init__(self, app):
         super().__init__()
         self.setParent(app)
@@ -439,16 +438,16 @@ class Score_Window(QWidget):
         self.hide()
 
     def update_highscores(self, scores):
-        '''
+        """
         Updates Highscores labels
-        '''
+        """
         for i in range(5):
             self.score_lines[i].setText('{}'.format(scores[i]))
 
     def update_title(self, won):
-        '''
+        """
         Updates win-lost title
-        '''
+        """
         style = 'background-color: rgba(0,0,0,0%); \
                  border: 0px; \
                  border-bottom: 5px solid {1}; \
@@ -463,14 +462,14 @@ class Score_Window(QWidget):
         self.status.setStyleSheet(style)
 
 
-class Header_Window(QWidget):
+class HeaderWindow(QWidget):
     def __init__(self, app):
         super().__init__()
         self.setParent(app)
         self.setFixedSize(app.size[0], app.offset)
 
 
-class Menu_Window(QWidget):
+class MenuWindow(QWidget):
     def __init__(self, app, mode):
         super().__init__()
         self.setParent(app)
@@ -549,9 +548,9 @@ class Menu_Window(QWidget):
         self.help.show()
 
     def reset_save(self):
-        '''
+        """
         Resets game save
-        '''
+        """
         self.parent().save = None
         with open('save.pickle', 'wb') as f:
             pickle.dump(None, f)
@@ -562,9 +561,9 @@ class Menu_Window(QWidget):
         self.parent().resume()
 
     def switch_play_mode(self):
-        '''
+        """
         Resizes top buttons depending on saved level existance
-        '''
+        """
         app = self.parent()
         if self.cont.isHidden():
             self.cont.show()
@@ -574,15 +573,15 @@ class Menu_Window(QWidget):
             self.play.setFixedSize(app.size[0] / 2, app.size[1] / 5)
 
     def switch_mode(self, name):
-        '''
+        """
         Updates button text
 
         name used to pass mode caption
-        '''
+        """
         self.mode.setText('Mode: ' + name)
 
 
-class Level_Select_Window(QWidget):
+class LevelSelectWindow(QWidget):
     def __init__(self, app):
         super().__init__()
         self.setParent(app)
@@ -641,7 +640,7 @@ class Level_Select_Window(QWidget):
         self.back_btn = back_btn
 
 
-class Help_Window(QWidget):
+class HelpWindow(QWidget):
     def __init__(self, w, h):
         super().__init__()
         self.txt = 'Hello and Welcome to ZUMA! \n' + \
@@ -655,7 +654,7 @@ class Help_Window(QWidget):
                    '(and 10 extra for each 4+ ball) \n' + \
                    'Don\'t let the balls hit the end of the road... \n' + \
                    'And the most important: HAVE FUN ;) \n\n' + \
-                   'Author: Matthew Savelev, 2019, All rights reserved ©'
+                   'Author: Matthew Savelev, 2020'
         self.text = QLabel(self)
         self.text.setAlignment = Qt.AlignCenter
         self.setFixedSize(w, h)
@@ -669,19 +668,19 @@ class Help_Window(QWidget):
                                                       int(w / 50),
                                                       int(w * 0.032))
         self.text.setStyleSheet(style)
-        self.text.show
+        self.text.show()
 
 
 class QButton(QPushButton):
-    '''
+    """
     Modified QPushButton with ID
-    '''
+    """
     def __init__(self, id, text, parent):
         super().__init__(text, parent)
         self.id = id
 
     def on_click(self):
-        '''
+        """
         Handles button clicking events
-        '''
+        """
         self.parent().parent().start(self.id)

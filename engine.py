@@ -8,7 +8,7 @@ from random import randint
 class Level:
     def __init__(self, caption, width, height, types, checkpoints,
                  ball_amount, ball_radius, ball_speed, player_pos,
-                 player_rotaion, player_bullet_speed, tex_name_prefix,
+                 player_rotation, player_bullet_speed, tex_name_prefix,
                  highscores, bonuses):
         self.bonuses = bonuses
         self.types = types
@@ -29,7 +29,7 @@ class Level:
         self.finished = False
         self.p = Player(types, self.mode, ball_radius,
                         player_pos, player_bullet_speed)
-        self.rot = player_rotaion
+        self.rot = player_rotation
         self.come_back = []
         self.score = 0
         self.won = False
@@ -40,9 +40,9 @@ class Level:
         self.debuffs = {}
 
     def update_highscores(self):
-        '''
+        """
         Checking current highscores and record it if it's higher than Top 5
-        '''
+        """
         for i in range(len(self.highscores)):
             if self.score >= self.highscores[i]:
                 self.highscores.insert(i, self.score)
@@ -50,34 +50,34 @@ class Level:
                 break
 
     def check_sequence(self, start_index):
-        '''
+        """
         Scanning ball sequence in both directions to find subsequence of balls
         with same color as ball with start_index
-        '''
+        """
         st = start_index
         fin = start_index
-        type = self.balls[start_index].type
+        ball_type = self.balls[start_index].type
         i = start_index - 1
         while i >= 0:
-            if self.balls[i].type == type or self.balls[i].status == 3:
+            if self.balls[i].type == ball_type or self.balls[i].status == 3:
                 st -= 1
             else:
                 break
             i -= 1
         i = start_index + 1
         while i < len(self.balls):
-            if self.balls[i].type == type or self.balls[i].status == 3:
+            if self.balls[i].type == ball_type or self.balls[i].status == 3:
                 fin += 1
             else:
                 break
             i += 1
-        return (st, fin)
+        return st, fin
 
     def check_bonuses(self, hit_index):
-        '''
+        """
         Check ball neighbours for bonuses
         if find some, return index
-        '''
+        """
         result = []
         if hit_index >= 1 and self.balls[hit_index - 1].type < 0:
             result.append(hit_index - 1)
@@ -87,9 +87,9 @@ class Level:
         return result
 
     def clear_trash(self):
-        '''
+        """
         Removes unused balls (which was deleted in drawer)
-        '''
+        """
         for ball in self.balls:
             if ball.status == 4:
                 self.balls.remove(ball)
@@ -98,9 +98,9 @@ class Level:
                 self.p.bullets.remove(bull)
 
     def update_debuffs(self, time_delta):
-        '''
+        """
         Updates debuffs status
-        '''
+        """
         for i in list(self.debuffs):
             v = self.debuffs[i] - time_delta * 1000
             if v <= 0:
@@ -109,12 +109,12 @@ class Level:
                 self.debuffs[i] = v
 
     def update(self, time_delta):
-        self.update_debuffs(time_delta)
-        '''
+        """
         Updates game condition
 
         time_delta is time passed from last call
-        '''
+        """
+        self.update_debuffs(time_delta)
         if len(self.come_back) == 0:
             if 'slow' in self.debuffs:
                 self.move_balls_head_by_time(len(self.balls), time_delta / 2)
@@ -198,9 +198,9 @@ class Level:
             self.update_highscores()
 
     def get_ball_distance(self, ball1, ball2):
-        '''
+        """
         Gets distance between ball on a road
-        '''
+        """
         cp2 = ball2.goal - 1
         cp1 = ball1.goal
         if cp1 == cp2 + 1:
@@ -210,9 +210,9 @@ class Level:
                 get_distance(ball2.pos, self.cp[cp2]))
 
     def get_distance_between_checkpoint(self, i1, i2):
-        '''
+        """
         Gets distance between 2 checkpoints on a road
-        '''
+        """
         ma = max(i1, i2)
         mi = min(i1, i2)
         dist = 0
@@ -222,25 +222,25 @@ class Level:
         return dist
 
     def handle_bonus(self, bonus):
-        '''
+        """
         Handle bonus ball
-        '''
-        type = self.bonuses[- self.balls[bonus].type - 1]
-        if type == 'slow':
+        """
+        bonus_type = self.bonuses[- self.balls[bonus].type - 1]
+        if bonus_type == 'slow':
             self.debuffs['slow'] = 5000
             self.music_queue.append('score_up')
             self.balls[bonus].status = 3
-            if bonus > 0 and bonus < len(self.balls) - 1:
+            if 0 < bonus < len(self.balls) - 1:
                 self.move_balls_head_by_distance(bonus, self.r * 2, True)
-        elif type == 'bomb':
+        elif bonus_type == 'bomb':
             start = max(bonus - 2, 0)
             finish = min(bonus + 2, len(self.balls) - 1)
             self.delete_ball_sequence(start, finish)
 
     def handle_bonuses(self, bonuses, neighbour):
-        '''
+        """
         Handle bonuses
-        '''
+        """
         if len(bonuses) == 1:
             self.handle_bonus(bonuses[0])
         elif len(bonuses) == 2:
@@ -250,9 +250,9 @@ class Level:
                 self.handle_bonus(bonuses[1])
 
     def insert_ball(self, index, ball, neighbour):
-        '''
+        """
         Inserts ball in sequence on index position
-        '''
+        """
         self.music_queue.append('hit')
         self.balls.insert(index, ball)
         if index == len(self.balls) - 1:
@@ -272,9 +272,9 @@ class Level:
                 self.delete_ball_sequence(s[0], s[1])
 
     def delete_ball_sequence(self, start, end):
-        '''
+        """
         Deletes balls from start to end positions
-        '''
+        """
         self.music_queue.append('score_up')
         amount = end - start + 1
         scored = 0
@@ -287,20 +287,20 @@ class Level:
         self.score += scored * (50 + 10 * (scored - 3))
 
     def move_ball_by_distance(self, ball, dx, backward=False):
-        '''
+        """
         Moves ball on a checkpoints road
 
         dx - distance to move
         ball - ball to move
         backward - should it go back or forward
-        '''
-        if (backward):
+        """
+        if backward:
             dist = get_distance(ball.pos, self.cp[ball.goal - 1])
             while dist <= dx:
                 ball.pos = self.cp[ball.goal - 1]
                 ball.goal -= 1
                 if ball.goal == 0:
-                    ball.goal == 1
+                    ball.goal = 1
                     return
                 dx -= dist
                 dist = get_distance(ball.pos, self.cp[ball.goal - 1])
@@ -320,57 +320,57 @@ class Level:
         ball.move(dx * math.cos(angle), dx * math.sin(angle))
 
     def move_ball_by_time(self, ball, time_delta, backward=False):
-        '''
+        """
         Moves ball on a checkpoints road
 
         time_delta - how many time was spent from last update
         ball - ball to move
         backward - should it go back or forward
-        '''
+        """
         dx = self.v * time_delta
         self.move_ball_by_distance(ball, dx, backward)
 
     def move_balls_head_by_time(self, amount, time_delta, backward=False):
-        '''
+        """
         Moves balls sequence head on a checkpoints road
 
         time_delta - how many time was spent from last update
         ball - ball to move
         backward - should it go back or forward
-        '''
+        """
         for i in range(amount):
             self.move_ball_by_time(self.balls[i], time_delta, backward)
 
     def move_balls_head_by_distance(self, amount, dx, backward=False):
-        '''
+        """
         Moves balls sequence head on a checkpoints road
 
         dx - distance to move
         ball - ball to move
         backward - should it go back or forward
-        '''
+        """
         for i in range(amount):
             self.move_ball_by_distance(self.balls[i], dx, backward)
 
 
 def get_distance(p1, p2):
-    '''
+    """
     Returns a distance between p1 and p2
-    '''
+    """
     return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
 
 
 def get_angle(p1, p2):
-    '''
+    """
     Returns an angle between p1-p2 line and OX axis
-    '''
+    """
     return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
 
 
 def get_angle2(end1, corner, end2):
-    '''
+    """
     Returns an angle between end1-corner and corner-end2 lines
-    '''
+    """
     a = math.fabs(get_angle(end1, corner) - get_angle(end2, corner))
     if a > math.pi:
         return math.pi * 2 - a
@@ -378,12 +378,12 @@ def get_angle2(end1, corner, end2):
 
 
 def luck_check(chance):
-    '''
+    """
     With a chosen chance return True
-    '''
+    """
     return randint(0, 100) < chance
 
 
 def is_in_border(p, b1, b2):
-    return p[0] < max([b1[0], b2[0]]) and p[0] > min([b1[0], b2[0]]) and \
-           p[1] < max([b1[1], b2[1]]) and p[1] > min([b1[1], b2[1]])
+    return max([b1[0], b2[0]]) > p[0] > min([b1[0], b2[0]]) and \
+           max([b1[1], b2[1]]) > p[1] > min([b1[1], b2[1]])

@@ -4,14 +4,14 @@ from PyQt5.QtCore import QUrl
 import os
 
 
-class SoundPack():
+class SoundPack:
     def __init__(self, name, bg, shoot, hit, score_up, swap, loose, win):
-        '''
+        """
         Creates Soundpack
 
         name - soundpack name
         other params - non-absolute way to files
-        '''
+        """
         self.name = name
 
         self.back = QMediaPlaylist()
@@ -31,14 +31,14 @@ class SoundPack():
         self.win = QSound(win)
 
 
-class SoundPlayer():
+class SoundPlayer:
     def __init__(self, packs, current):
-        '''
+        """
         Creates Sound Player
 
         packs - dictionary with sounpacks
         current - name of current mode
-        '''
+        """
         self.curr = current
         self.packs = packs
         self.actions = {
@@ -47,70 +47,70 @@ class SoundPlayer():
         }
 
     def mute(self):
-        '''
+        """
         Mutes backgroung sound
-        '''
+        """
         self.packs[self.curr].bg.setVolume(0)
 
     def unmute(self):
-        '''
+        """
         Unmutes backgroung sound
-        '''
+        """
         self.packs[self.curr].bg.setVolume(30)
 
     def play_bg(self):
-        '''
+        """
         Plays background music
-        '''
+        """
         self.packs[self.curr].bg.playlist().shuffle()
         self.packs[self.curr].bg.play()
 
     def stop_bg(self):
-        '''
+        """
         Stops playing background music
-        '''
+        """
         self.packs[self.curr].bg.stop()
 
     def shoot(self):
-        '''
+        """
         Plays shooting sound
-        '''
+        """
         self.packs[self.curr].shoot.play()
 
     def hit(self):
-        '''
+        """
         Plays ball-hitting sound
-        '''
+        """
         self.packs[self.curr].hit.play()
 
     def score_up(self):
-        '''
+        """
         Plays when balls are removed from sequence
-        '''
+        """
         self.packs[self.curr].score_up.play()
 
     def swap(self):
-        '''
+        """
         Plays on ball swapping
-        '''
+        """
         self.packs[self.curr].swap.play()
 
     def loose(self):
-        '''
+        """
         Plays on game losing
-        '''
+        """
         self.packs[self.curr].loose.play()
 
     def win(self):
-        '''
+        """
         Plays on game winning
-        '''
+        """
         self.packs[self.curr].win.play()
 
     def switch(self, new_mode, muted):
-        '''
+        """
         Switches the game mode to new_mode
-        '''
+        """
         self.packs[self.curr].bg.stop()
         self.curr = new_mode
         self.packs[self.curr].bg.playlist().shuffle()
@@ -121,8 +121,8 @@ class SoundPlayer():
             self.packs[self.curr].bg.setVolume(30)
 
     def handle_events(self, queue):
-        '''
+        """
         Handle sound events
-        '''
+        """
         for action in queue:
             self.actions[action]()

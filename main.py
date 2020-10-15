@@ -3,7 +3,6 @@ from graphics import Textures
 import sys
 import os
 import applogic
-import engine
 import parser
 import sound
 

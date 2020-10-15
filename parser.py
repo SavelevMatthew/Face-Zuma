@@ -5,12 +5,12 @@ from sound import SoundPack
 
 
 def read_level(filename, w, h, types, bonuses):
-    '''
+    """
     Gets level information from file and returns new level based on it
 
     w, h - level size
     types - amount of each type of ball
-    '''
+    """
     with open(filename, 'r') as f:
         data = json.load(f)
         name = data.get('Name')
@@ -31,12 +31,12 @@ def read_level(filename, w, h, types, bonuses):
 
 
 def parse_levels(w, h, types, bonuses):
-    '''
+    """
     Scans levels directory for json files named with "level", gets their data,
     and returns levels list
 
     w, h - app size
-    '''
+    """
     levels = []
     for file in sorted(os.listdir('levels')):
         if 'level' in file and file.endswith('.json'):
@@ -46,9 +46,9 @@ def parse_levels(w, h, types, bonuses):
 
 
 def save_levels(levels):
-    '''
+    """
     Save updated highscores in levels files
-    '''
+    """
     high_score_dict = {}
     for level in levels:
         high_score_dict[level.caption] = level.highscores
@@ -67,9 +67,9 @@ def save_levels(levels):
 
 
 def find_music(modes):
-    '''
+    """
     Find music packs in music directory
-    '''
+    """
     default_path = os.path.join('music', '_default')
     default_bg_path = os.path.join(default_path, 'bg')
     default_bg = []
@@ -87,10 +87,10 @@ def find_music(modes):
 
     packs = {}
     for f in modes:
-        dir = os.path.join('music', f)
-        if os.path.exists(dir):
+        directory = os.path.join('music', f)
+        if os.path.exists(directory):
             bg = []
-            bg_folder = os.path.join(dir, 'bg')
+            bg_folder = os.path.join(directory, 'bg')
             for fi in sorted(os.listdir(bg_folder)):
                 f_name = os.path.join(bg_folder, fi)
                 if (fi.endswith('.mp3') or fi.endswith('.wav')) and \
@@ -99,12 +99,12 @@ def find_music(modes):
             if len(bg) == 0:
                 bg = default_bg
 
-            shoot = try_to_find_sound(dir, 'shoot', def_shoot)
-            hit = try_to_find_sound(dir, 'hit', def_hit)
-            score_up = try_to_find_sound(dir, 'score_up', def_score_up)
-            swap = try_to_find_sound(dir, 'swap', def_swap)
-            loose = try_to_find_sound(dir, 'loose', def_loose)
-            win = try_to_find_sound(dir, 'win', def_win)
+            shoot = try_to_find_sound(directory, 'shoot', def_shoot)
+            hit = try_to_find_sound(directory, 'hit', def_hit)
+            score_up = try_to_find_sound(directory, 'score_up', def_score_up)
+            swap = try_to_find_sound(directory, 'swap', def_swap)
+            loose = try_to_find_sound(directory, 'loose', def_loose)
+            win = try_to_find_sound(directory, 'win', def_win)
 
             packs[f] = SoundPack(f, bg, shoot, hit, score_up, swap, loose, win)
         else:
@@ -113,14 +113,14 @@ def find_music(modes):
     return packs
 
 
-def try_to_find_sound(dir, sound, default):
-    '''
+def try_to_find_sound(directory, sound, default):
+    """
     Tries to find sound  with mp3 of wav ext in dir
     else returns default
-    '''
-    file = os.path.join(dir, sound + '.wav')
+    """
+    file = os.path.join(directory, sound + '.wav')
     if not os.path.exists(file):
-        file = os.path.join(dir, sound + '.mp3')
+        file = os.path.join(directory, sound + '.mp3')
         if not os.path.exists(file):
             file = default
     return file
