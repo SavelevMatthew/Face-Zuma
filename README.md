@@ -12,7 +12,7 @@
 [General Info](#general-info)\
 [Installation](#installation)\
 [How to create your custom pack](#how-to-create-my-own-pack)\
-[Current Status](#current-status)
+[Current Status](#current-status)\
 [Author](#author)
 
 ## General Info
