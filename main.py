@@ -8,7 +8,9 @@ import sound
 
 if __name__ == '__main__':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
-    modes = ['Classic', 'Faces']
+    modes = [file for file in os.listdir(r'images')
+             if os.path.isdir(os.path.join(os.getcwd(), 'images', file))
+             and file[0].isupper()]
     bonuses = ['slow', 'bomb']
     offset = 50
     w, h = 800, 600
