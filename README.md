@@ -44,7 +44,7 @@ If you want to create your own **pack of Textures**, you should create folder in
 4. You dont have to create all sounds for pack. If something is missing, the game will automatically use default sound instead :)
 
 ## Current Status
-Project development is slowed down, because I was bored of this App and Have not too much time right now to creating new updates.
+Project development is slowed down, because I was bored of this App and Have not too much time right now to create new updates.
 
 ## Author
 ### Savelev Matvey
